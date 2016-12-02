@@ -1,7 +1,6 @@
-package algorithm.FDIM.BitSetBased;
+package algorithm.FDIM.BFSBased;
 
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.List;
 
 /**
@@ -20,7 +19,6 @@ public class FPNode {
     List<FPNode> childs = new ArrayList<>();
     FPNode nodeLink = null; // link to next node with the same item id (for the header table).
     List<Integer> branches = new ArrayList<>();
-    BitSet bitMap;
 
     /**
      * Return the immediate child of this node having a given ID. If there is no

@@ -1,6 +1,5 @@
-package algorithm.FDIM.BitSetBased;
+package algorithm.FDIM.DFSBased;
 
-import java.util.BitSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,17 +18,6 @@ public class FPTree {
     FPNode root = new FPNode(); // null node
     int current_branch = 0;
     static int current_node = 1;
-    //count of unique transactions
-    static int countOfUniqueItems;
-
-    //static BitSet bitMap;
-    /**
-     * Constructor
-     */
-    FPTree(int uniqueItemsCount) {
-        countOfUniqueItems = uniqueItemsCount;
-        //bitMap = new BitSet(uniqueItemsCount);
-    }
 
     /**
      * Method for adding a transaction to the fp-tree (for the initial
@@ -51,18 +39,11 @@ public class FPTree {
                 // there is no node, we create a new one
                 FPNode newNode = new FPNode();
                 newNode.itemID = item;
+                newNode.parent = currentNode;
 
                 newNode.nodeID = current_node;
                 current_node++;
                 //System.out.println("current_node: "+current_node+" item: "+item+" nodeID: "+newNode.nodeID);
-
-                //init the bitSet
-                newNode.bitMap = new BitSet(countOfUniqueItems);
-                //set the element corresponding to parent's item
-                if (currentNode != root) {
-                    newNode.bitMap.set(currentNode.itemID);
-                    newNode.bitMap.or(currentNode.bitMap);
-                }
 
                 // we link the new node to its parrent
                 currentNode.childs.add(newNode);
@@ -84,11 +65,6 @@ public class FPTree {
                     last = newNode;
                 }
             } else {
-                //or the contents with the parent's bitMap
-                if (currentNode != root) {
-                    child.bitMap.or(currentNode.bitMap);
-                }
-
                 // there is a node already, we update it
                 child.counter++;
                 //child.nodeID = currentNode.nodeID;

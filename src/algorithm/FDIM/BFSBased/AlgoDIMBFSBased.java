@@ -1,4 +1,4 @@
-package algorithm.FDIM.BitSetBased;
+package algorithm.FDIM.BFSBased;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -22,7 +23,7 @@ import java.util.TreeSet;
  * @author nihal jain
  * @version 1.0
  */
-public class AlgoDIMBitSetBased {
+public class AlgoDIMBFSBased {
 
     // Number of transactions in the database
     private int transactionCount = 0;
@@ -48,7 +49,7 @@ public class AlgoDIMBitSetBased {
     int countt = 0;
     Integer preference[];
     // used by dfs for support counting
-    private final int sumOfSupport = 0;
+    private int sumOfSupport = 0;
 
     /**
      * Method to run the FP tree based ORed Itemset generation algorithm.
@@ -113,7 +114,7 @@ public class AlgoDIMBitSetBased {
         // Before inserting a transaction in the FPTree, we sort the items
         // by descending order of support. We ignore items that
         // do not have the minimum support.
-        tree = new FPTree(mapSupport.size());
+        tree = new FPTree();
         tree.root.nodeID = 0;
         // read the file
         BufferedReader reader = null;
@@ -155,7 +156,7 @@ public class AlgoDIMBitSetBased {
                     return compare;
                 }
             });
-            
+
             // add the sorted transaction to the fptree.
             tree.addTransaction(transaction);
             // increase the transaction count
@@ -212,12 +213,10 @@ public class AlgoDIMBitSetBased {
                 } else {
                     mapSupport.put(item, ++count);
                 }
-                //System.out.println(item);
             }
             // increase the transaction count
             transactionCount++;
         }
-        //System.out.println(mapSupport);
         // close the input file
         reader.close();
     }
@@ -230,7 +229,7 @@ public class AlgoDIMBitSetBased {
      */
     private void FPORed() {
 
-        List<Integer> list = new ArrayList<>();
+        List<Integer> list = new ArrayList<Integer>();
         preference = new Integer[total_singles];
         for (Integer i = 0; i < intKeys.length; i++) {
             list.add(intKeys[i]);
@@ -265,6 +264,7 @@ public class AlgoDIMBitSetBased {
      * @param start start index
      * @param end end index
      * @param depth depth of combination tree
+     * @throws InterruptedException
      */
     public void Itemsets(List<Integer> list, int start, int end, int depth) {
         for (int i = start; i >= end; i--) {
@@ -273,61 +273,89 @@ public class AlgoDIMBitSetBased {
             }
             List<Integer> newlist = new ArrayList<>(list);
             newlist.remove(list.get(i));
-            float val = FindSupport(newlist);
+            int sum = BFS(newlist);
+            float val = ((float) sum / getDatabaseSize());
             if (val >= minsup) {
                 countitemsets++;
                 SortedSet<Integer> set = new TreeSet<>();
                 set.addAll(newlist);
                 test.Algorithm.frequent_list_set.add(set.toArray(new Integer[newlist.size()]));
                 test.Algorithm.frequent_list.put(set.toString(), val);
-                //prints the freq ored itemsets
                 //System.out.println("--> " + newlist.toString() + " val: " + val + " tnr: " + getDatabaseSize());
-                
                 Itemsets(newlist, i - 1, end, depth - 1);
             }
         }
     }
 
-    /**
-     *
-     * @param list candidate itemset
-     * @return support of itemset
-     */
-    private float FindSupport(List<Integer> list) {
-        long sum = 0;
-  
-        for (int k = 0; k < list.size(); k++) {
-            
-            // find the first/head node of the header list corresponding to item k
-            FPNode X_node = tree.mapItemNodes.get(list.get(k));
-            while (X_node != null) {
-                int temp = Check_path(list, k, X_node);
-                if (temp == 0) {
-                    sum = sum + X_node.counter;
+   /**
+    * 
+    * @param list
+    * @return 
+    */
+    private int BFS(List<Integer> list) {
+        int sumOfSupport = 0;
+        // Mark all the vertices as not visited(By default
+        // set as false)
+        boolean visited[] = new boolean[FPTree.current_node + 1];
+        //Arrays.fill(visited, false);
+        for (int i = 0; i < visited.length; ++i) {
+            visited[i] = false;
+        }
+
+        // Create a queue for BFS+
+        LinkedList<FPNode> queue = new LinkedList<>();
+
+        // Mark the current node as visited and enqueue it
+        visited[0] = true;
+        queue.add(tree.root);
+        FPNode src;
+        //System.out.print("Reached "+tree.root.nodeID);
+        while (!queue.isEmpty()) {
+            // Dequeue a vertex from queue and print it
+            src = queue.poll();
+            //System.out.print("Dequed "+src+" ");
+
+            // Get all adjacent vertices of the dequeued vertex s
+            // If a adjacent has not been visited, then mark it
+            // visited and enqueue it
+            List<FPNode> adj = src.childs;
+            Collections.sort(adj, new Comparator<FPNode>() {
+                public int compare(FPNode node1, FPNode node2) {
+                    // compare the frequency
+                    int compare = mapSupport.get(node2.itemID) - mapSupport.get(node1.itemID);
+                    // if the same frequency, we check the lexical ordering!
+                    if (compare == 0) {
+                        return (node1.itemID - node2.itemID);
+                    }
+                    // otherwise, just use the frequency
+                    return compare;
                 }
-                X_node = X_node.nodeLink;
+            });
+            //System.out.println("list size: "+src.childs.size());
+            for (int i = 0; i < adj.size(); i++) {
+                boolean foundFlag = false;
+                FPNode n = adj.get(i);
+                //System.out.println("Visited node: "+n.nodeID +" visited: "+visited[n.nodeID]); 
+
+                if (!visited[n.nodeID]) //n.nodeID != -1 && 
+                {
+                    for (Integer item : list) {
+                        if (item.equals(n.itemID)) {
+                            sumOfSupport += n.counter;
+                            foundFlag = true;
+                            break;
+                        }
+                    }
+                    if (foundFlag == true) {
+                        continue;
+                    }
+                    //System.out.println("Visited: "+n.nodeID);
+                    visited[n.nodeID] = true;
+                    queue.add(n);
+                }
             }
         }
-        return ((float) sum / getDatabaseSize());
-    }
-  
-    /**
-     * @param list candidate itemset
-     * @param i index
-     * @param X_node FP-tree node
-     * @param tree FP-tree
-     * @return 1 if exist otherwise 0
-     */
-    private int Check_path(List<Integer> list, int indexOfItem, FPNode X_node) {
-        int result = 0;
-        for(int k = 0; k < indexOfItem; k++) {
-            if(X_node.bitMap.get(list.get(k))){
-                //System.out.println("Item "+ list.get(k) + " is parent of "+ X_node.nodeID);
-                result = 1;
-                break;
-            }
-        }
-        return result;
+        return sumOfSupport;
     }
 
     /**

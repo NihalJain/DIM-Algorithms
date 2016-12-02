@@ -1,13 +1,14 @@
 package test;
 
+import algorithm.FDIM.BFSBased.AlgoDIMBFSBased;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Scanner;
 
 import algorithm.FDIM.BitSetBased.AlgoDIMBitSetBased;
+import algorithm.FDIM.DFSBased.AlgoDIMDFSBased;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.HashMap;
@@ -31,18 +32,20 @@ public class Algorithm {
     /**
      * main function
      *
-     * @param args
+     * @param args input_dataset_name minimum_support_value algorithm_number
      * @throws FileNotFoundException If input file not found
      * @throws IOException throws IOException if any.
      */
     public static void main(String[] args) throws FileNotFoundException, IOException {
         String input = null;
         Float minsupp = null;
+        int whichAlgo = 0;
         int parsed = 0;
         //Scanner sc = new Scanner(System.in);
 
-        if (args.length != 2) {
+        if (args.length != 3) {
             System.out.print("error: Missing argument!");
+            System.exit(-1);
         }
 
         // ------------Input file --------------
@@ -63,6 +66,9 @@ public class Algorithm {
             System.exit(-1);
         }
 
+        //assigns which algorithm to run
+        whichAlgo = Integer.parseInt(args[2]);
+
         // preprocess dataset
         long parseStart = System.currentTimeMillis();
         ParseDataset parse = new ParseDataset();
@@ -72,7 +78,18 @@ public class Algorithm {
 
         System.out.println();
         System.out.println("-----------------------------------------------------------------------");
-        System.out.println("                      DIM Bit Set Based ALGORITHM");
+        switch (whichAlgo) {
+            case 1:
+                System.out.println("                      DIM Bit Set Based ALGORITHM");
+                break;
+            case 2:
+                System.out.println("                       DIM BFS Based ALGORITHM");
+                break;
+            default:
+                System.out.println("                       DIM DFS Based ALGORITHM");
+                break;
+        }
+
         System.out.println("=======================================================================");
         System.out.println("                     MINING WITH BELOW PARAMETERS ");
         System.out.println("=======================================================================");
@@ -82,10 +99,32 @@ public class Algorithm {
 
         // PHASE 1: finding All frequent ORed itemsets
         long lStartTime = System.currentTimeMillis();
+        int databaseSize, totalSingles;
 
-        AlgoDIMBitSetBased fpgrowth = new AlgoDIMBitSetBased();
-        fpgrowth.runAlgorithm(input, minsupp);
-        int databaseSize = fpgrowth.getDatabaseSize();
+        //run the chosen algorithm
+        switch (whichAlgo) {
+            case 1: {
+                AlgoDIMBitSetBased dimAlgo = new AlgoDIMBitSetBased();
+                dimAlgo.runAlgorithm(input, minsupp);
+                databaseSize = dimAlgo.getDatabaseSize();
+                totalSingles = AlgoDIMBitSetBased.total_singles;
+                break;
+            }
+            case 2: {
+                AlgoDIMBFSBased dimAlgo = new AlgoDIMBFSBased();
+                dimAlgo.runAlgorithm(input, minsupp);
+                databaseSize = dimAlgo.getDatabaseSize();
+                totalSingles = AlgoDIMBFSBased.total_singles;
+                break;
+            }
+            default: {
+                AlgoDIMDFSBased dimAlgo = new AlgoDIMDFSBased();
+                dimAlgo.runAlgorithm(input, minsupp);
+                databaseSize = dimAlgo.getDatabaseSize();
+                totalSingles = AlgoDIMDFSBased.total_singles;
+                break;
+            }
+        }
 
         long lMidTime = System.currentTimeMillis();
 
@@ -96,7 +135,7 @@ public class Algorithm {
 
         // summarizing results
         System.out.println("----------------------------------------------------------------------");
-        System.out.println("DATABASE SIZE " + databaseSize + " Total items : " + AlgoDIMBitSetBased.total_singles);
+        System.out.println("DATABASE SIZE " + databaseSize + " Total items : " + totalSingles);
         System.out.println("Elapsed milliseconds (Preprocessing): " + (parseEnd - parseStart));
         System.out.println("Elapsed milliseconds ( ORed Itemsets): " + (lMidTime - lStartTime));
         System.out.println("Elapsed milliseconds (Rules + ORed itemsets): " + (lEndTime - lStartTime));
