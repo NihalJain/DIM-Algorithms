@@ -22,7 +22,7 @@ import java.util.TreeSet;
  * @author nihal jain
  * @version 1.0
  */
-public class AlgoFPORed {
+public class AlgoDIMBitSetBased {
 
     // Number of transactions in the database
     private int transactionCount = 0;

@@ -7,7 +7,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-import algorithm.FDIM.BitSetBased.AlgoFPORed;
+import algorithm.FDIM.BitSetBased.AlgoDIMBitSetBased;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.HashMap;
@@ -31,29 +31,33 @@ public class Algorithm {
     /**
      * main function
      *
-     * @param arg
+     * @param args
      * @throws FileNotFoundException If input file not found
      * @throws IOException throws IOException if any.
      */
-    public static void main(String[] arg) throws FileNotFoundException, IOException {
+    public static void main(String[] args) throws FileNotFoundException, IOException {
         String input = null;
         Float minsupp = null;
         int parsed = 0;
-        Scanner sc = new Scanner(System.in);
+        //Scanner sc = new Scanner(System.in);
+
+        if (args.length != 2) {
+            System.out.print("error: Missing argument!");
+        }
 
         // ------------Input file --------------
-        System.out.print("Enter Input file path : ");
+        //System.out.print("Enter Input file path : ");
         try {
-            input = fileToPath(sc.nextLine()); //use this for IDE(testing)
+            input = fileToPath(args[0]); //use this for IDE(testing)
         } catch (Exception e) {
             System.err.println("error: Input file not found.");
             System.exit(-1);
         }
-        
+
         // ------------Support --------------
-        System.out.print("Enter Support Threshold : ");
+        //System.out.print("Enter Support Threshold : ");
         try {
-            minsupp = sc.nextFloat();
+            minsupp = Float.valueOf(args[1]);
         } catch (Exception e) {
             System.err.println("error: Invalid input for minimum Support.");
             System.exit(-1);
@@ -79,7 +83,7 @@ public class Algorithm {
         // PHASE 1: finding All frequent ORed itemsets
         long lStartTime = System.currentTimeMillis();
 
-        AlgoFPORed fpgrowth = new AlgoFPORed();
+        AlgoDIMBitSetBased fpgrowth = new AlgoDIMBitSetBased();
         fpgrowth.runAlgorithm(input, minsupp);
         int databaseSize = fpgrowth.getDatabaseSize();
 
@@ -92,7 +96,7 @@ public class Algorithm {
 
         // summarizing results
         System.out.println("----------------------------------------------------------------------");
-        System.out.println("DATABASE SIZE " + databaseSize + " Total items : " + AlgoFPORed.total_singles);
+        System.out.println("DATABASE SIZE " + databaseSize + " Total items : " + AlgoDIMBitSetBased.total_singles);
         System.out.println("Elapsed milliseconds (Preprocessing): " + (parseEnd - parseStart));
         System.out.println("Elapsed milliseconds ( ORed Itemsets): " + (lMidTime - lStartTime));
         System.out.println("Elapsed milliseconds (Rules + ORed itemsets): " + (lEndTime - lStartTime));
