@@ -1,5 +1,6 @@
-package algorithm.FDIM.BFSBased;
+package algorithm.FDIM.FPOR;
 
+import com.rits.cloning.Cloner;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -9,7 +10,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -23,7 +23,7 @@ import java.util.TreeSet;
  * @author nihal jain
  * @version 1.0
  */
-public class AlgoDIMBFSBased {
+public class AlgoDIMFPOR {
 
     // Number of transactions in the database
     private int transactionCount = 0;
@@ -43,7 +43,7 @@ public class AlgoDIMBFSBased {
     private Integer[] intKeys;
     // total candidate itemsets
     int candidateItemset = 0;
-    FPTree tree = null;
+
     float minsup;
     int countitemsets = 0;
     int countt = 0;
@@ -60,7 +60,7 @@ public class AlgoDIMBFSBased {
      * @throws FileNotFoundException exception if input file not found.
      */
     public void runAlgorithm(String input, float minsupp) throws FileNotFoundException, IOException {
-
+        FPTree tree = null;
         // reset the transaction count
         databaseSize = 0;
 
@@ -115,7 +115,7 @@ public class AlgoDIMBFSBased {
         // by descending order of support. We ignore items that
         // do not have the minimum support.
         tree = new FPTree();
-        tree.root.nodeID = 0;
+        //tree.root.nodeID = 0;
         // read the file
         BufferedReader reader = null;
         try {
@@ -168,7 +168,7 @@ public class AlgoDIMBFSBased {
         t1 = System.currentTimeMillis();
         // calling FPOred function on TREE tree with minsupp.
         minsup = minsupp;
-        FPORed();
+        FPORed(tree);
         t2 = System.currentTimeMillis();
 
         // itemset finding time
@@ -227,9 +227,9 @@ public class AlgoDIMBFSBased {
      * @param minsupp the minimum support threshold.
      * @param tree original FP tree.
      */
-    private void FPORed() {
+    private void FPORed(FPTree tree) {
 
-        List<Integer> list = new ArrayList<Integer>();
+        List<Integer> list = new ArrayList<>();
         preference = new Integer[total_singles];
         for (Integer i = 0; i < intKeys.length; i++) {
             list.add(intKeys[i]);
@@ -250,7 +250,7 @@ public class AlgoDIMBFSBased {
         for (int i = 0; i < intKeys.length; i++) {
             preference[list.get(i)] = i;
         }
-        Itemsets(list, total_singles - 1, 0, total_singles);
+        Itemsets(list, total_singles - 1, 0, total_singles, tree);
 
         // writer.close();
         // summarizing result
@@ -264,16 +264,53 @@ public class AlgoDIMBFSBased {
      * @param start start index
      * @param end end index
      * @param depth depth of combination tree
+     * @param tree
      */
-    public void Itemsets(List<Integer> list, int start, int end, int depth) {
+    public void Itemsets(List<Integer> list, int start, int end, int depth, FPTree tree) {
         for (int i = start; i >= end; i--) {
             if (depth == end + 1) {
+                //System.out.println("DONE" );
                 return;
             }
             List<Integer> newlist = new ArrayList<>(list);
+            //System.out.println("--> " + newlist.toString() );
             newlist.remove(list.get(i));
-            int sum = BFS(newlist);
+
+            Cloner cloner = new Cloner();
+            FPTree newTree = cloner.deepClone(tree);
+
+            //modifyTree(newTree, list.get(i));
+            int item = list.get(i);
+            FPNode headernode = tree.mapItemNodes.get(item);
+            while (headernode != null) {
+                List<FPNode> adj = headernode.childs;
+                headernode.parent.childs.remove(headernode);
+                //System.out.println("222");
+                //System.out.println("list size: "+src.childs.size());
+                for (int j = 0; j < adj.size(); j++) {
+                    FPNode n = adj.get(j);
+                    //System.out.println("Visited node: "+n.nodeID +" visited: "+visited[n.nodeID]); 
+                    headernode.parent.childs.add(n);
+                    n.parent = headernode.parent;
+
+                    //tree.drawTree();
+                    //System.out.println("222111");
+                }
+                headernode = headernode.nodeLink;
+            }
+            tree.mapItemNodes.remove(item);
+
+            //float val = FindSupport(newTree);
+            long sum = 0;
+            List<FPNode> adj = tree.root.childs;
+
+            for (int k = 0; k < adj.size(); k++) {
+                sum += adj.get(k).counter;
+                //System.out.println("nodeid: "+adj.get(k).nodeID +" item: "+adj.get(k).itemID+" count: "+ adj.get(k).counter);
+            }
+
             float val = ((float) sum / getDatabaseSize());
+
             if (val >= minsup) {
                 countitemsets++;
                 SortedSet<Integer> set = new TreeSet<>();
@@ -281,80 +318,42 @@ public class AlgoDIMBFSBased {
                 test.Algorithm.frequent_list_set.add(set.toArray(new Integer[newlist.size()]));
                 test.Algorithm.frequent_list.put(set.toString(), val);
                 //System.out.println("--> " + newlist.toString() + " val: " + val + " tnr: " + getDatabaseSize());
-                Itemsets(newlist, i - 1, end, depth - 1);
+                //System.out.println();
+                Itemsets(newlist, i - 1, end, depth - 1, newTree);
             }
         }
     }
 
     /**
      *
-     * @param list
-     * @return
+     * @param tree
+     * @param item
      */
-    private int BFS(List<Integer> list) {
-        int sumOfSupport = 0;
-        // Mark all the vertices as not visited(By default
-        // set as false)
-        boolean visited[] = new boolean[FPTree.current_node + 1];
-        //Arrays.fill(visited, false);
-        for (int i = 0; i < visited.length; ++i) {
-            visited[i] = false;
-        }
+    public void modifyTree(FPTree tree, int item) {
+        //System.out.println("Before:");
+        //tree.drawTree();
 
-        // Create a queue for BFS+
-        LinkedList<FPNode> queue = new LinkedList<>();
-
-        // Mark the current node as visited and enqueue it
-        visited[0] = true;
-        queue.add(tree.root);
-        FPNode src;
-        //System.out.print("Reached "+tree.root.nodeID);
-        while (!queue.isEmpty()) {
-            // Dequeue a vertex from queue and print it
-            src = queue.poll();
-            //System.out.print("Dequed "+src+" ");
-
-            // Get all adjacent vertices of the dequeued vertex s
-            // If a adjacent has not been visited, then mark it
-            // visited and enqueue it
-            List<FPNode> adj = src.childs;
-            Collections.sort(adj, new Comparator<FPNode>() {
-                public int compare(FPNode node1, FPNode node2) {
-                    // compare the frequency
-                    int compare = mapSupport.get(node2.itemID) - mapSupport.get(node1.itemID);
-                    // if the same frequency, we check the lexical ordering!
-                    if (compare == 0) {
-                        return (node1.itemID - node2.itemID);
-                    }
-                    // otherwise, just use the frequency
-                    return compare;
-                }
-            });
+        FPNode headernode = tree.mapItemNodes.get(item);
+        while (headernode != null) {
+            List<FPNode> adj = headernode.childs;
+            headernode.parent.childs.remove(headernode);
+            //System.out.println("222");
             //System.out.println("list size: "+src.childs.size());
             for (int i = 0; i < adj.size(); i++) {
-                boolean foundFlag = false;
                 FPNode n = adj.get(i);
                 //System.out.println("Visited node: "+n.nodeID +" visited: "+visited[n.nodeID]); 
+                headernode.parent.childs.add(n);
+                n.parent = headernode.parent;
 
-                if (!visited[n.nodeID]) //n.nodeID != -1 && 
-                {
-                    for (Integer item : list) {
-                        if (item.equals(n.itemID)) {
-                            sumOfSupport += n.counter;
-                            foundFlag = true;
-                            break;
-                        }
-                    }
-                    if (foundFlag == true) {
-                        continue;
-                    }
-                    //System.out.println("Visited: "+n.nodeID);
-                    visited[n.nodeID] = true;
-                    queue.add(n);
-                }
+                //tree.drawTree();
+                //System.out.println("222111");
             }
+            headernode = headernode.nodeLink;
         }
-        return sumOfSupport;
+        tree.mapItemNodes.remove(item);
+        //System.out.println("After:");
+        //tree.drawTree();
+
     }
 
     /**

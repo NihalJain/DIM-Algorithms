@@ -9,6 +9,7 @@ import java.util.ArrayList;
 
 import algorithm.FDIM.BitSetBased.AlgoDIMBitSetBased;
 import algorithm.FDIM.DFSBased.AlgoDIMDFSBased;
+import algorithm.FDIM.FPOR.AlgoDIMFPOR;
 import algorithm.FDIM.MFPImproved.AlgoDIMMFPImproved;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -89,9 +90,9 @@ public class Algorithm {
             case 3:
                 System.out.println("                       DIM BFS Based ALGORITHM");
                 break;
-            /*case 4:
+            case 4:
                 System.out.println("                       DIM FP-OR ALGORITHM");
-                break;*/
+                break;
             default:
                 System.out.println("                        DIM MFP-Improved");
                 break;
@@ -131,6 +132,14 @@ public class Algorithm {
                 totalSingles = AlgoDIMDFSBased.total_singles;
                 break;
             }
+            case 4: {
+                AlgoDIMFPOR dimAlgo = new AlgoDIMFPOR();
+                dimAlgo.runAlgorithm(input, minsupp);
+                databaseSize = dimAlgo.getDatabaseSize();
+                totalSingles = AlgoDIMFPOR.total_singles;
+                break;
+            }
+
             default: {
                 AlgoDIMMFPImproved dimAlgo = new AlgoDIMMFPImproved();
                 dimAlgo.runAlgorithm(input, minsupp);
@@ -140,20 +149,14 @@ public class Algorithm {
             }
         }
 
-        long lMidTime = System.currentTimeMillis();
-
-        // PHASE 2: Generating all rules from the set of frequent itemsets
-        /*AlgoORedRules rules = new AlgoORedRules();
-        rules.Generate_Rules(minconf, parsed);*/
         long lEndTime = System.currentTimeMillis();
 
         // summarizing results
         System.out.println("----------------------------------------------------------------------");
         System.out.println("DATABASE SIZE " + databaseSize + " Total items : " + totalSingles);
         System.out.println("Elapsed milliseconds (Preprocessing): " + (parseEnd - parseStart));
-        System.out.println("Elapsed milliseconds ( ORed Itemsets): " + (lMidTime - lStartTime));
-        System.out.println("Elapsed milliseconds (Rules + ORed itemsets): " + (lEndTime - lStartTime));
-        System.out.println("Elapsed milliseconds (preprocessing + Rules + ORed itemsets): " + (lEndTime - parseStart));
+        System.out.println("Elapsed milliseconds ( ORed Itemsets): " + (lEndTime - lStartTime));
+        System.out.println("Elapsed milliseconds (Preprocessing + ORed itemsets): " + (lEndTime - parseStart));
 
         // linux command for getting memory utiliation of this process
         try {

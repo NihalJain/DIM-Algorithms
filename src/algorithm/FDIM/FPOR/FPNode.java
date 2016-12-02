@@ -1,4 +1,4 @@
-package algorithm.FDIM.MFPImproved;
+package algorithm.FDIM.FPOR;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,26 +6,27 @@ import java.util.List;
 /**
  * This is an implementation of a FPTree node.
  *
- * @author shailesh prajapati
+ * @author nihal jain
  * @version 1.0
  */
-public class FPNode {
+public class FPNode /*implements Cloneable*/ {
 
+    //int nodeID = -1;
     int itemID = -1; // item id
     int counter = 1; // frequency counter
     // the parent node of that node or null if it is the root
     FPNode parent = null;
     // the child nodes of that node
-    List<FPNode> childs = new ArrayList<FPNode>();
+    List<FPNode> childs = new ArrayList<>();
     FPNode nodeLink = null; // link to next node with the same item id (for the header table).
-    List<Integer> branches = new ArrayList<Integer>();
+    List<Integer> branches = new ArrayList<>();
 
     /**
      * Return the immediate child of this node having a given ID. If there is no
      * such child, return null;
      *
-     * @param id
-     * @return
+     * @param id of the given item
+     * @return immediate child having given item ID
      */
     public FPNode getChildWithID(int id) {
         // for each child node
