@@ -1,4 +1,4 @@
-package fp.algorithm.frequentitemset;
+package algorithm.FDIM.BitSetBased;
 
 import java.util.BitSet;
 import java.util.HashMap;

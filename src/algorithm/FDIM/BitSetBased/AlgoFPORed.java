@@ -1,4 +1,4 @@
-package fp.algorithm.frequentitemset;
+package algorithm.FDIM.BitSetBased;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -278,8 +278,8 @@ public class AlgoFPORed {
                 countitemsets++;
                 SortedSet<Integer> set = new TreeSet<>();
                 set.addAll(newlist);
-                fp.test.Algorithm.frequent_list_set.add(set.toArray(new Integer[newlist.size()]));
-                fp.test.Algorithm.frequent_list.put(set.toString(), val);
+                test.Algorithm.frequent_list_set.add(set.toArray(new Integer[newlist.size()]));
+                test.Algorithm.frequent_list.put(set.toString(), val);
                 //prints the freq ored itemsets
                 //System.out.println("--> " + newlist.toString() + " val: " + val + " tnr: " + getDatabaseSize());
                 

@@ -1,4 +1,4 @@
-package fp.test;
+package test;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -7,7 +7,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-import fp.algorithm.frequentitemset.AlgoFPORed;
+import algorithm.FDIM.BitSetBased.AlgoFPORed;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.HashMap;
