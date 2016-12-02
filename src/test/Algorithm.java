@@ -9,6 +9,7 @@ import java.util.ArrayList;
 
 import algorithm.FDIM.BitSetBased.AlgoDIMBitSetBased;
 import algorithm.FDIM.DFSBased.AlgoDIMDFSBased;
+import algorithm.FDIM.MFPImproved.AlgoDIMMFPImproved;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.HashMap;
@@ -85,8 +86,14 @@ public class Algorithm {
             case 2:
                 System.out.println("                       DIM BFS Based ALGORITHM");
                 break;
+            case 3:
+                System.out.println("                       DIM BFS Based ALGORITHM");
+                break;
+            /*case 4:
+                System.out.println("                       DIM FP-OR ALGORITHM");
+                break;*/
             default:
-                System.out.println("                       DIM DFS Based ALGORITHM");
+                System.out.println("                        DIM MFP-Improved");
                 break;
         }
 
@@ -117,11 +124,18 @@ public class Algorithm {
                 totalSingles = AlgoDIMBFSBased.total_singles;
                 break;
             }
-            default: {
+            case 3: {
                 AlgoDIMDFSBased dimAlgo = new AlgoDIMDFSBased();
                 dimAlgo.runAlgorithm(input, minsupp);
                 databaseSize = dimAlgo.getDatabaseSize();
                 totalSingles = AlgoDIMDFSBased.total_singles;
+                break;
+            }
+            default: {
+                AlgoDIMMFPImproved dimAlgo = new AlgoDIMMFPImproved();
+                dimAlgo.runAlgorithm(input, minsupp);
+                databaseSize = dimAlgo.getDatabaseSize();
+                totalSingles = AlgoDIMMFPImproved.total_singles;
                 break;
             }
         }
