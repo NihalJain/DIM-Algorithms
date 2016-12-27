@@ -40,12 +40,12 @@ public class Algorithm {
      */
     public static void main(String[] args) throws FileNotFoundException, IOException {
         String input = null;
-        Float minsupp = null;
-        int whichAlgo = 0;
+        Float minsupp = null, maxsupp = null;
+        int whichAlgo = 0, maxitem = 0;
         int parsed = 0;
         //Scanner sc = new Scanner(System.in);
 
-        if (args.length != 3) {
+        if (args.length != 5) {
             System.out.print("error: Missing argument!");
             System.exit(-1);
         }
@@ -58,18 +58,39 @@ public class Algorithm {
             System.err.println("error: Input file not found.");
             System.exit(-1);
         }
-
+        
+        //assigns which algorithm to run
+        try {
+            whichAlgo = Integer.parseInt(args[1]);    
+        } catch(Exception e) {
+            System.err.println("error: No algorithm specified.");
+            System.exit(-1);
+        }
+        
         // ------------Support --------------
         //System.out.print("Enter Support Threshold : ");
         try {
-            minsupp = Float.valueOf(args[1]);
+            minsupp = Float.valueOf(args[2]);
         } catch (Exception e) {
             System.err.println("error: Invalid input for minimum Support.");
             System.exit(-1);
         }
-
-        //assigns which algorithm to run
-        whichAlgo = Integer.parseInt(args[2]);
+        
+        try {
+            maxsupp = Float.valueOf(args[3]);
+        } catch (Exception e) {
+            System.err.println("error: Invalid input for minimum Support.");
+            System.exit(-1);
+        }
+        
+        //assigns maximum length of the pattern to search forto run
+        try {
+            maxitem = Integer.parseInt(args[4]);    
+        } catch(Exception e) {
+            System.err.println("error: No maxitem specified.");
+            System.exit(-1);
+        }
+        
 
         // preprocess dataset
         long parseStart = System.currentTimeMillis();
@@ -102,7 +123,9 @@ public class Algorithm {
         System.out.println("                     MINING WITH BELOW PARAMETERS ");
         System.out.println("=======================================================================");
         System.out.println("DataSet : " + input);
-        System.out.println("Support Threshold : " + minsupp);
+        System.out.println("Min. Support Threshold : " + minsupp);
+        System.out.println("Max. Support Threshold : " + maxsupp);
+        System.out.println("Maximum pattern size : " + maxitem); 
         System.out.println("-----------------------------------------------------------------------");
 
         // PHASE 1: finding All frequent ORed itemsets
@@ -113,36 +136,36 @@ public class Algorithm {
         switch (whichAlgo) {
             case 1: {
                 AlgoDIMBitSetBased dimAlgo = new AlgoDIMBitSetBased();
-                dimAlgo.runAlgorithm(input, minsupp);
+                dimAlgo.runAlgorithm(input, minsupp, maxsupp, maxitem);
                 databaseSize = dimAlgo.getDatabaseSize();
                 totalSingles = AlgoDIMBitSetBased.total_singles;
                 break;
             }
             case 2: {
                 AlgoDIMBFSBased dimAlgo = new AlgoDIMBFSBased();
-                dimAlgo.runAlgorithm(input, minsupp);
+                dimAlgo.runAlgorithm(input, minsupp, maxsupp, maxitem);
                 databaseSize = dimAlgo.getDatabaseSize();
                 totalSingles = AlgoDIMBFSBased.total_singles;
                 break;
             }
             case 3: {
                 AlgoDIMDFSBased dimAlgo = new AlgoDIMDFSBased();
-                dimAlgo.runAlgorithm(input, minsupp);
+                dimAlgo.runAlgorithm(input, minsupp, maxsupp, maxitem);
                 databaseSize = dimAlgo.getDatabaseSize();
                 totalSingles = AlgoDIMDFSBased.total_singles;
                 break;
             }
-            case 4: {
+            /*case 4: {
                 AlgoDIMFPOR dimAlgo = new AlgoDIMFPOR();
-                dimAlgo.runAlgorithm(input, minsupp);
+                dimAlgo.runAlgorithm(input, minsupp, maxsupp, maxitem);
                 databaseSize = dimAlgo.getDatabaseSize();
                 totalSingles = AlgoDIMFPOR.total_singles;
                 break;
-            }
+            }*/
 
             default: {
                 AlgoDIMMFPImproved dimAlgo = new AlgoDIMMFPImproved();
-                dimAlgo.runAlgorithm(input, minsupp);
+                dimAlgo.runAlgorithm(input, minsupp, maxsupp, maxitem);
                 databaseSize = dimAlgo.getDatabaseSize();
                 totalSingles = AlgoDIMMFPImproved.total_singles;
                 break;

@@ -44,8 +44,8 @@ public class AlgoDIMFPOR {
     // total candidate itemsets
     int candidateItemset = 0;
 
-    float minsup;
-    int countitemsets = 0;
+    float minsup, maxsup;
+    int maxitems, countitemsets = 0;
     int countt = 0;
     Integer preference[];
     // used by dfs for support counting
@@ -59,7 +59,7 @@ public class AlgoDIMFPOR {
      * @throws IOException exception if error reading or writing files.
      * @throws FileNotFoundException exception if input file not found.
      */
-    public void runAlgorithm(String input, float minsupp) throws FileNotFoundException, IOException {
+    public void runAlgorithm(String input, float minsupp, float maxsupp, int maxitem) throws FileNotFoundException, IOException {
         FPTree tree = null;
         // reset the transaction count
         databaseSize = 0;
@@ -168,6 +168,8 @@ public class AlgoDIMFPOR {
         t1 = System.currentTimeMillis();
         // calling FPOred function on TREE tree with minsupp.
         minsup = minsupp;
+        maxsup =  maxsupp;
+        maxitems = maxitem;
         FPORed(tree);
         t2 = System.currentTimeMillis();
 
@@ -311,7 +313,7 @@ public class AlgoDIMFPOR {
 
             float val = ((float) sum / getDatabaseSize());
 
-            if (val >= minsup) {
+            if (val >= minsup && val <= maxsup) {
                 countitemsets++;
                 SortedSet<Integer> set = new TreeSet<>();
                 set.addAll(newlist);
