@@ -305,28 +305,6 @@ public class AlgoDIMBitSetBased {
                 Itemsets(list, newList, maxdepth);
             }
         }
-        /*List<Integer> newlist = new ArrayList<>(list);
-            newlist.remove(list.get(i));
-            if(newlist.size() <= maxitems){
-                float val = FindSupport(newlist);
-                //System.out.println("--> start: " + i + " depth: " + depth + "Itemset: "+ newlist.toString() );
-                if (val >= minsup) {
-                    if(val <= maxsup){
-                        countitemsets++;
-                        SortedSet<Integer> set = new TreeSet<>();
-                        set.addAll(newlist);
-                        test.Algorithm.frequent_list_set.add(set.toArray(new Integer[newlist.size()]));
-                        test.Algorithm.frequent_list.put(set.toString(), val);
-                        //prints the freq ored itemsets
-                        //System.out.println("--> " + newlist.toString() + " val: " + val + " tnr: " + getDatabaseSize());
-                    }
-                    Itemsets(newlist, i - 1, end, depth - 1);
-                }
-            }
-            else{
-                Itemsets(newlist, i - 1, end, depth - 1);
-            }
-        }*/
     }
 
     /**

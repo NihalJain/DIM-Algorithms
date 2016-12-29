@@ -84,7 +84,6 @@ public class Algorithm {
             System.exit(-1);
         }
         
-<<<<<<< HEAD
         //assigns maximum length of the pattern to search forto run
         try {
             maxitem = Integer.parseInt(args[5]);    
@@ -94,9 +93,7 @@ public class Algorithm {
         }
         
         /*/
-=======
-        */
->>>>>>> be62b140b88cb89f233dbec94798a0e279532bb3
+        
         if (args.length != 5) {
             System.out.print("error: Missing argument!");
             System.exit(-1);
