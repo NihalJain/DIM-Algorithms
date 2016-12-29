@@ -9,7 +9,6 @@ import java.util.ArrayList;
 
 import algorithm.FDIM.BitSetBased.AlgoDIMBitSetBased;
 import algorithm.FDIM.DFSBased.AlgoDIMDFSBased;
-import algorithm.FDIM.FPOR.AlgoDIMFPOR;
 import algorithm.FDIM.MFPImproved.AlgoDIMMFPImproved;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -44,7 +43,48 @@ public class Algorithm {
         int whichAlgo = 0, maxitem = 0;
         int parsed = 0;
         //Scanner sc = new Scanner(System.in);
+        
+        /*jar mode
+        
+        if (args.length != 6) {
+            System.out.print("error: Missing argument!");
+            System.exit(-1);
+        }
 
+        // ------------Input file --------------
+        //System.out.print("Enter Input file path : ");
+        try {
+            input = args[1]; //fileToPath(args[1]); //use this for IDE(testing)
+        } catch (Exception e) {
+            System.err.println("error: Input file not found.");
+            System.exit(-1);
+        }
+        
+        //assigns which algorithm to run
+        try {
+            whichAlgo = Integer.parseInt(args[2]);    
+        } catch(Exception e) {
+            System.err.println("error: No algorithm specified.");
+            System.exit(-1);
+        }
+        
+        // ------------Support --------------
+        //System.out.print("Enter Support Threshold : ");
+        try {
+            minsupp = Float.valueOf(args[3]);
+        } catch (Exception e) {
+            System.err.println("error: Invalid input for minimum Support.");
+            System.exit(-1);
+        }
+        
+        try {
+            maxsupp = Float.valueOf(args[4]);
+        } catch (Exception e) {
+            System.err.println("error: Invalid input for minimum Support.");
+            System.exit(-1);
+        }
+        
+        */
         if (args.length != 5) {
             System.out.print("error: Missing argument!");
             System.exit(-1);

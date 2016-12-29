@@ -72,7 +72,7 @@ public class AlgoDIMBitSetBased {
         long t2 = System.currentTimeMillis();
         // Displaying frequency counting time
         System.out.println("Item Frequency counting time : " + (t2 - t1) + " ms");
-
+        t1 = System.currentTimeMillis();
         // assigning total unique items
         total_singles = (int) mapSupport.size();
         // adding all items name
@@ -165,7 +165,8 @@ public class AlgoDIMBitSetBased {
         }
         // close the input file
         reader.close();
-
+        t2 = System.currentTimeMillis();
+        System.out.println("Tree build time : " + (t2 - t1) + "ms");
         t1 = System.currentTimeMillis();
         // calling FPOred function on TREE tree with minsupp.
         minsup = minsupp;
