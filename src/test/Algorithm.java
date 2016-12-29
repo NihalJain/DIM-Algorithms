@@ -84,7 +84,19 @@ public class Algorithm {
             System.exit(-1);
         }
         
+<<<<<<< HEAD
+        //assigns maximum length of the pattern to search forto run
+        try {
+            maxitem = Integer.parseInt(args[5]);    
+        } catch(Exception e) {
+            System.err.println("error: No maxitem specified.");
+            System.exit(-1);
+        }
+        
+        /*/
+=======
         */
+>>>>>>> be62b140b88cb89f233dbec94798a0e279532bb3
         if (args.length != 5) {
             System.out.print("error: Missing argument!");
             System.exit(-1);
@@ -218,8 +230,8 @@ public class Algorithm {
         System.out.println("----------------------------------------------------------------------");
         System.out.println("DATABASE SIZE " + databaseSize + " Total items : " + totalSingles);
         System.out.println("Elapsed milliseconds (Preprocessing): " + (parseEnd - parseStart));
-        System.out.println("Elapsed milliseconds ( ORed Itemsets): " + (lEndTime - lStartTime));
-        System.out.println("Elapsed milliseconds (Preprocessing + ORed itemsets): " + (lEndTime - parseStart));
+        System.out.println("Elapsed milliseconds ( FPTree + ORed Itemsets): " + (lEndTime - lStartTime));
+        System.out.println("Elapsed milliseconds (Total time => Preprocessing + ORed itemsets): " + (lEndTime - parseStart));
 
         // linux command for getting memory utiliation of this process
         try {

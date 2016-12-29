@@ -1,5 +1,6 @@
 package algorithm.FDIM.BitSetBased;
 
+import com.rits.cloning.Cloner;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -256,8 +257,14 @@ public class AlgoDIMBitSetBased {
         for (int i = 0; i < intKeys.length; i++) {
             preference[list.get(i)] = i;
         }
-        Itemsets(list, total_singles - 1, 0, total_singles);
-
+        //System.out.print(list.toString());
+        for(int i = 0; i < total_singles; i++){
+            List<Integer> currList = new ArrayList<>();
+            currList.add(list.get(i));
+            //System.out.println("--> depth: " + 0 + "Itemset: "+ currList.toString() );  
+            //System.out.println("Total " + countitemsets + " frequent ORed Itemsets found.");
+            Itemsets(list, currList, maxitems);
+        }
         // writer.close();
         // summarizing result
         System.out.println("Total candidates " + candidateItemset);
@@ -267,16 +274,38 @@ public class AlgoDIMBitSetBased {
     /**
      *
      * @param list list of items for candidates generation
-     * @param start start index
-     * @param end end index
-     * @param depth depth of combination tree
+     * @param currList
+     * @param maxdepth
      */
-    public void Itemsets(List<Integer> list, int start, int end, int depth) {
-        for (int i = start; i >= end; i--) {
-            if (depth == end + 1) {
-                return;
+    public void Itemsets(List<Integer> list, List<Integer> currList, int maxdepth) {
+        int depth = currList.size();
+        int maxx = list.size() - 1;
+       
+        if(depth != maxdepth){ 
+            for(int i = 1 + list.indexOf(currList.get(depth - 1)); i <= maxx; i++){
+                
+                Cloner cloner=new Cloner();
+                List<Integer> newList = cloner.deepClone(currList);
+                newList.add(list.get(i));
+                //System.out.println("--> depth: " + depth + "Itemset: "+ newList.toString() );  
+                
+                float val = FindSupport(newList);
+                //System.out.println("--> start: " + i + " depth: " + depth + "Itemset: "+ newlist.toString() );
+                if (val >= minsup && val <= maxsup){
+                    countitemsets++;
+                    SortedSet<Integer> set = new TreeSet<>();
+                    set.addAll(newList);
+                    test.Algorithm.frequent_list_set.add(set.toArray(new Integer[newList.size()]));
+                    test.Algorithm.frequent_list.put(set.toString(), val);
+                    //prints the freq ored itemsets
+                    //System.out.println("--> " + newList.toString() + " val: " + val + " tnr: " + getDatabaseSize());
+                }
+                if(newList.get(depth) == list.get(maxx))
+                    return;
+                Itemsets(list, newList, maxdepth);
             }
-            List<Integer> newlist = new ArrayList<>(list);
+        }
+        /*List<Integer> newlist = new ArrayList<>(list);
             newlist.remove(list.get(i));
             if(newlist.size() <= maxitems){
                 float val = FindSupport(newlist);
@@ -297,7 +326,7 @@ public class AlgoDIMBitSetBased {
             else{
                 Itemsets(newlist, i - 1, end, depth - 1);
             }
-        }
+        }*/
     }
 
     /**
