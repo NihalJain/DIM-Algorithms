@@ -1,5 +1,7 @@
 package algorithm.FDIM.BitSetBased;
 
+import com.google.common.collect.Ordering;
+import static com.google.common.collect.Ordering.natural;
 import com.rits.cloning.Cloner;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -44,7 +46,7 @@ public class AlgoDIMBitSetBased {
     // total candidate itemsets
     int candidateItemset = 0;
     FPTree tree = null;
-    float minsup, maxsup;
+    float minsup;
     int maxitems, countitemsets = 0;
     int countt = 0;
     Integer preference[];
@@ -61,7 +63,7 @@ public class AlgoDIMBitSetBased {
      * @throws IOException exception if error reading or writing files.
      * @throws FileNotFoundException exception if input file not found.
      */
-    public void runAlgorithm(String input, float minsupp, float maxsupp, int maxitem) throws FileNotFoundException, IOException {
+    public void runAlgorithm(String input, float minsupp, int maxitem) throws FileNotFoundException, IOException {
 
         // reset the transaction count
         databaseSize = 0;
@@ -158,7 +160,7 @@ public class AlgoDIMBitSetBased {
                     return compare;
                 }
             });
-            
+
             // add the sorted transaction to the fptree.
             tree.addTransaction(transaction);
             // increase the transaction count
@@ -171,7 +173,6 @@ public class AlgoDIMBitSetBased {
         t1 = System.currentTimeMillis();
         // calling FPOred function on TREE tree with minsupp.
         minsup = minsupp;
-        maxsup = maxsupp;
         maxitems = maxitem;
         FPORed();
         t2 = System.currentTimeMillis();
@@ -237,10 +238,15 @@ public class AlgoDIMBitSetBased {
     private void FPORed() {
 
         List<Integer> list = new ArrayList<>();
+        //List<Integer> origList = new ArrayList<>();
         preference = new Integer[total_singles];
         for (Integer i = 0; i < intKeys.length; i++) {
             list.add(intKeys[i]);
         }
+
+        /*Cloner cloner = new Cloner();
+        origList = cloner.deepClone(list);
+        System.out.println("Original List: " + origList.toString());*/
         Collections.sort(list, new Comparator<Integer>() {
             @Override
             public int compare(Integer item1, Integer item2) {
@@ -257,13 +263,50 @@ public class AlgoDIMBitSetBased {
         for (int i = 0; i < intKeys.length; i++) {
             preference[list.get(i)] = i;
         }
-        //System.out.print(list.toString());
-        for(int i = 0; i < total_singles; i++){
-            List<Integer> currList = new ArrayList<>();
-            currList.add(list.get(i));
-            //System.out.println("--> depth: " + 0 + "Itemset: "+ currList.toString() );  
-            //System.out.println("Total " + countitemsets + " frequent ORed Itemsets found.");
-            Itemsets(list, currList, maxitems);
+
+        //System.out.println("Mapped List: " + list.toString());
+        List<List<Integer>> levelItemsets = new ArrayList<>();
+
+        //Itemsets(list, list, levelItemsets, 0, total_singles);
+        if (maxitems < total_singles) {
+            levelItemsets = generateLevelOne(list, maxitems);
+        } else {
+            countitemsets++;
+            //SortedSet<Integer> set = new TreeSet<>();
+            //set.addAll(list);
+            //test.Algorithm.frequent_list_set.add(set.toArray(new Integer[list.size()]));
+            //test.Algorithm.frequent_list.put(set.toString(), (float)1.0);
+            levelItemsets = generateLevelOne(list, maxitems - 1);
+        }
+        while (!levelItemsets.isEmpty()) {
+            //System.out.println("Level itemsets: " + levelItemsets);
+
+            levelItemsets = processItemsets(levelItemsets);
+            //System.out.println("Level itemsets: " + levelItemsets);
+
+            List<List<Integer>> complimentItemsets = new ArrayList<>();
+            for (int i = 0; i < levelItemsets.size(); i++) {
+                List<Integer> currItemset = levelItemsets.get(i);
+                List<Integer> complimentItemset = findComlimentItemset(currItemset);
+                //Collections.sort(complimentItemset);
+                complimentItemsets.add(complimentItemset);
+            }
+            //System.out.println("Compliment itemsets: " + complimentItemsets);
+            Ordering ordering = Ordering.natural();
+            Collections.sort(complimentItemsets, ordering.lexicographical());
+            //System.out.println("Sorted Compliment itemsets: " + complimentItemsets);
+            List<List<Integer>> genItemsets = generateCandidateSizeK(complimentItemsets);
+            //System.out.println("Generated itemsets: " + genItemsets);
+
+            levelItemsets = new ArrayList<>();
+
+            for (int i = 0; i < genItemsets.size(); i++) {
+                List<Integer> currItemset = genItemsets.get(i);
+                List<Integer> itemset = findComlimentItemset(currItemset);
+                Collections.sort(itemset);
+                levelItemsets.add(itemset);
+            }
+            //System.out.println("Level itemsets: " + levelItemsets);
         }
         // writer.close();
         // summarizing result
@@ -271,40 +314,199 @@ public class AlgoDIMBitSetBased {
         System.out.println("Total " + countitemsets + " frequent ORed Itemsets found.");
     }
 
+    public List<Integer> findComlimentItemset(List<Integer> currItemset) {
+        List<Integer> complimentItemset = new ArrayList<>();
+        boolean[] included = new boolean[total_singles];
+
+        for (int j = 0; j < currItemset.size(); j++) {
+            included[currItemset.get(j)] = true;
+        }
+
+        //for (int j = included.length - 1; j >= 0; j--) {
+        for (int j = 0; j < included.length; j++) {
+            if (included[j] == false) {
+                complimentItemset.add(j);
+            }
+        }
+        return complimentItemset;
+    }
+
     /**
+     * Generate actual subset by index sequence
+     *
+     * @param input
+     * @param subset
+     * @return
+     */
+    public List<Integer> getSubset(List<Integer> input, int[] subset) {
+        List<Integer> result = new ArrayList<>();
+        for (int i = 0; i < subset.length; i++) {
+            result.add(input.get(subset[i]));
+        }
+        return result;
+    }
+
+    /**
+     * Enumerate from middle recursively: VERY FAST
+     *
+     * @param input
+     * @param maxitems
+     * @return
+     */
+    @SuppressWarnings("empty-statement")
+    public List<List<Integer>> generateLevelOne(List<Integer> input, int maxitems) {
+        List<List<Integer>> subsets = new ArrayList<>();
+
+        int[] s = new int[maxitems];                  // here we'll keep indices 
+        // pointing to elements in input array
+
+        if (maxitems <= input.size()) {
+            // first index sequence: 0, 1, 2, ...
+            for (int i = 0; (s[i] = i) < maxitems - 1; i++);
+            subsets.add(getSubset(input, s));
+            for (;;) {
+                int i;
+                // find position of item that can be incremented
+                for (i = maxitems - 1; i >= 0 && s[i] == input.size() - maxitems + i; i--);
+                if (i < 0) {
+                    break;
+                } else {
+                    s[i]++;                    // increment this item
+                    for (++i; i < maxitems; i++) {    // fill up remaining items
+                        s[i] = s[i - 1] + 1;
+                    }
+                    subsets.add(getSubset(input, s));
+                }
+            }
+        }
+        return subsets;
+    }
+
+    public List<List<Integer>> processItemsets(List<List<Integer>> itemsets) {
+        List<List<Integer>> levelItemsets = new ArrayList<>();
+        for (int i = 0; i < itemsets.size(); i++) {
+            List<Integer> currItemset = itemsets.get(i);
+
+            float val = FindSupport(currItemset);
+            //System.out.println("--> " + currItemset.toString() + " val: " + val + " tnr: " + getDatabaseSize());
+
+            if (val >= minsup) {
+                countitemsets++;
+                /*SortedSet<Integer> set = new TreeSet<>();
+                set.addAll(currItemset);
+                
+                test.Algorithm.frequent_list_set.add(set.toArray(new Integer[currItemset.size()]));
+                test.Algorithm.frequent_list.put(set.toString(), val);*/
+                //prints the freq ored itemsets
+                System.out.println("--> " + currItemset.toString() + " val: " + val + " tnr: " + getDatabaseSize());
+                levelItemsets.add(currItemset);
+            }
+        }
+        return levelItemsets;
+    }
+
+    /* Generating candidate itemsets of size k from frequent itemsets of size
+     * k-1. This is called "apriori-gen" in the paper by agrawal. This method is
+     * also used by the Apriori algorithm for generating candidates.
+     * Note that this method is very optimized. It assumed that the list of
+     * itemsets received as parameter are lexically ordered.
+     * 
+     * @param levelK_1  a set of itemsets of size k-1
+     * @return a set of candidates
+     */
+    protected List<List<Integer>> generateCandidateSizeK(List<List<Integer>> levelK_1) {
+        // create a variable to store candidates
+        List<List<Integer>> candidates = new ArrayList<>();
+
+        // For each itemset I1 and I2 of level k-1
+        loop1:
+        for (int i = 0; i < levelK_1.size(); i++) {
+            List<Integer> itemset1 = levelK_1.get(i);
+            //System.out.println("1:" + itemset1);
+            loop2:
+            for (int j = i + 1; j < levelK_1.size(); j++) {
+                List<Integer> itemset2 = levelK_1.get(j);
+                //System.out.println("2:" + itemset2);
+                // we compare items of itemset1 and itemset2.
+                // If they have all the same k-1 items and the last item of
+                // itemset1 is smaller than
+                // the last item of itemset2, we will combine them to generate a
+                // candidate
+                for (int k = 0; k < itemset1.size(); k++) {
+                    // if they are the last items
+                    if (k == itemset1.size() - 1) {
+                        // the one from itemset1 should be smaller (lexical
+                        // order)
+                        // and different from the one of itemset2
+                        if (itemset1.get(k) >= itemset2.get(k)) {
+                            continue loop1;
+                        }
+                    } // if they are not the last items, and
+                    else if (itemset1.get(k) < itemset2.get(k)) {
+                        continue loop2; // we continue searching
+                    } else if (itemset1.get(k) > itemset2.get(k)) {
+                        continue loop1; // we stop searching: because of lexical
+                        // order
+                    }
+                }
+
+                // Create a new candidate by combining itemset1 and itemset2
+                int lastItem1 = itemset1.get(itemset1.size() - 1);
+                int lastItem2 = itemset2.get(itemset2.size() - 1);
+                //System.out.println(lastItem1 + " " + lastItem2);
+                Cloner cloner = new Cloner();
+                if (lastItem1 < lastItem2) {
+                    // Create a new candidate by combining itemset1 and itemset2  
+                    List<Integer> newItemset = cloner.deepClone(itemset1);
+                    newItemset.add(lastItem2);
+                    candidates.add(newItemset);
+                } else {
+                    // Create a new candidate by combining itemset1 and itemset2
+                    List<Integer> newItemset = cloner.deepClone(itemset2);
+                    newItemset.add(lastItem1);
+                    candidates.add(newItemset);
+                }
+
+            }
+        }
+        // return the set of candidates
+        return candidates;
+    }
+
+    /**
+     * Enumerate from middle recursively: VERY SLOW
      *
      * @param list list of items for candidates generation
      * @param currList
-     * @param maxdepth
+     * @param levelItemsets
+     * @param depth
+     * @param skip
      */
-    public void Itemsets(List<Integer> list, List<Integer> currList, int maxdepth) {
-        int depth = currList.size();
-        int maxx = list.size() - 1;
-       
-        if(depth != maxdepth){ 
-            for(int i = 1 + list.indexOf(currList.get(depth - 1)); i <= maxx; i++){
-                
-                Cloner cloner=new Cloner();
-                List<Integer> newList = cloner.deepClone(currList);
-                newList.add(list.get(i));
-                //System.out.println("--> depth: " + depth + "Itemset: "+ newList.toString() );  
-                
-                float val = FindSupport(newList);
-                //System.out.println("--> start: " + i + " depth: " + depth + "Itemset: "+ newlist.toString() );
-                if (val >= minsup && val <= maxsup){
-                    countitemsets++;
-                    SortedSet<Integer> set = new TreeSet<>();
-                    set.addAll(newList);
-                    test.Algorithm.frequent_list_set.add(set.toArray(new Integer[newList.size()]));
-                    test.Algorithm.frequent_list.put(set.toString(), val);
-                    //prints the freq ored itemsets
-                    //System.out.println("--> " + newList.toString() + " val: " + val + " tnr: " + getDatabaseSize());
-                }
-                if(newList.get(depth) == list.get(maxx))
-                    return;
-                Itemsets(list, newList, maxdepth);
-            }
+    public void Itemsets(List<Integer> list, List<Integer> currList, List<List<Integer>> levelItemsets, int depth, int skip) {
+        if (total_singles - depth <= maxitems) {
+            //float val = FindSupport(currList);
+            //System.out.println("--> depth: " + depth + "Itemset: "+ currList.toString() ); 
+            //System.out.println("--> " + currList.toString()+ " val: " + val + " tnr: " + getDatabaseSize());
+            //if (val >= minsup){
+            //countitemsets++;
+            //SortedSet<Integer> set = new TreeSet<>();
+            //set.addAll(currList);
+            levelItemsets.add(currList);
+            //test.Algorithm.frequent_list_set.add(set.toArray(newInteger[currList.size()]));
+            //test.Algorithm.frequent_list.put(set.toString(), val); //prints the freq ored itemsets 
+            //System.out.println("--> " + currList.toString() + " val:" + val + " tnr: " + getDatabaseSize()); } 
+            return;
         }
+
+        for (int i = skip - 1; i >= 0; i--) {
+            Cloner cloner = new Cloner();
+            List<Integer> newList = cloner.deepClone(currList);
+            //System.out.println("--> depth: "+i); 
+            newList.remove(list.get(i));
+            // System.out.println("--> depth: " + depth + "Itemset: " + newList.toString());
+            Itemsets(list, newList, levelItemsets, depth + 1, i);
+        }
+
     }
 
     /**
@@ -314,9 +516,9 @@ public class AlgoDIMBitSetBased {
      */
     private float FindSupport(List<Integer> list) {
         long sum = 0;
-  
+
         for (int k = 0; k < list.size(); k++) {
-            
+
             // find the first/head node of the header list corresponding to item k
             FPNode X_node = tree.mapItemNodes.get(list.get(k));
             while (X_node != null) {
@@ -329,7 +531,7 @@ public class AlgoDIMBitSetBased {
         }
         return ((float) sum / getDatabaseSize());
     }
-  
+
     /**
      * @param list candidate itemset
      * @param i index
@@ -339,8 +541,8 @@ public class AlgoDIMBitSetBased {
      */
     private int Check_path(List<Integer> list, int indexOfItem, FPNode X_node) {
         int result = 0;
-        for(int k = 0; k < indexOfItem; k++) {
-            if(X_node.bitMap.get(list.get(k))){
+        for (int k = 0; k < indexOfItem; k++) {
+            if (X_node.bitMap.get(list.get(k))) {
                 //System.out.println("Item "+ list.get(k) + " is parent of "+ X_node.nodeID);
                 result = 1;
                 break;

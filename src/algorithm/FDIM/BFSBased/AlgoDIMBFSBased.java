@@ -44,7 +44,7 @@ public class AlgoDIMBFSBased {
     // total candidate itemsets
     int candidateItemset = 0;
     FPTree tree = null;
-    float minsup, maxsup;
+    float minsup;
     int maxitems, countitemsets = 0;
     int countt = 0;
     Integer preference[];
@@ -59,7 +59,7 @@ public class AlgoDIMBFSBased {
      * @throws IOException exception if error reading or writing files.
      * @throws FileNotFoundException exception if input file not found.
      */
-    public void runAlgorithm(String input, float minsupp, float maxsupp, int maxitem) throws FileNotFoundException, IOException {
+    public void runAlgorithm(String input, float minsupp, int maxitem) throws FileNotFoundException, IOException {
 
         // reset the transaction count
         databaseSize = 0;
@@ -168,7 +168,6 @@ public class AlgoDIMBFSBased {
         t1 = System.currentTimeMillis();
         // calling FPOred function on TREE tree with minsupp.
         minsup = minsupp;
-        maxsup =  maxsupp;
         maxitems = maxitem;
         FPORed();
         t2 = System.currentTimeMillis();
@@ -278,15 +277,13 @@ public class AlgoDIMBFSBased {
                 float val = BFS(newlist);
                 //System.out.println("--> start: " + i + " depth: " + depth + " Itemset: "+ newlist.toString() + " val: " + val);
                 if (val >= minsup) {
-                    if(val <= maxsup){
-                        countitemsets++;
-                        SortedSet<Integer> set = new TreeSet<>();
-                        set.addAll(newlist);
-                        test.Algorithm.frequent_list_set.add(set.toArray(new Integer[newlist.size()]));
-                        test.Algorithm.frequent_list.put(set.toString(), val);
-                        //prints the freq ored itemsets
-                        //System.out.println("--> " + newlist.toString() + " val: " + val + " tnr: " + getDatabaseSize());
-                    }
+                    countitemsets++;
+                    SortedSet<Integer> set = new TreeSet<>();
+                    set.addAll(newlist);
+                    test.Algorithm.frequent_list_set.add(set.toArray(new Integer[newlist.size()]));
+                    test.Algorithm.frequent_list.put(set.toString(), val);
+                    //prints the freq ored itemsets
+                    //System.out.println("--> " + newlist.toString() + " val: " + val + " tnr: " + getDatabaseSize());
                     Itemsets(newlist, i - 1, end, depth - 1);
                 }
             }

@@ -94,7 +94,7 @@ public class Algorithm {
         
         /*/
         
-        if (args.length != 5) {
+        if (args.length != 4) {
             System.out.print("error: Missing argument!");
             System.exit(-1);
         }
@@ -125,16 +125,16 @@ public class Algorithm {
             System.exit(-1);
         }
         
-        try {
+        /*try {
             maxsupp = Float.valueOf(args[3]);
         } catch (Exception e) {
             System.err.println("error: Invalid input for minimum Support.");
             System.exit(-1);
-        }
+        }*/
         
         //assigns maximum length of the pattern to search forto run
         try {
-            maxitem = Integer.parseInt(args[4]);    
+            maxitem = Integer.parseInt(args[3]);    
         } catch(Exception e) {
             System.err.println("error: No maxitem specified.");
             System.exit(-1);
@@ -173,7 +173,6 @@ public class Algorithm {
         System.out.println("=======================================================================");
         System.out.println("DataSet : " + input);
         System.out.println("Min. Support Threshold : " + minsupp);
-        System.out.println("Max. Support Threshold : " + maxsupp);
         System.out.println("Maximum pattern size : " + maxitem); 
         System.out.println("-----------------------------------------------------------------------");
 
@@ -185,21 +184,21 @@ public class Algorithm {
         switch (whichAlgo) {
             case 1: {
                 AlgoDIMBitSetBased dimAlgo = new AlgoDIMBitSetBased();
-                dimAlgo.runAlgorithm(input, minsupp, maxsupp, maxitem);
+                dimAlgo.runAlgorithm(input, minsupp, maxitem);
                 databaseSize = dimAlgo.getDatabaseSize();
                 totalSingles = AlgoDIMBitSetBased.total_singles;
                 break;
             }
             case 2: {
                 AlgoDIMBFSBased dimAlgo = new AlgoDIMBFSBased();
-                dimAlgo.runAlgorithm(input, minsupp, maxsupp, maxitem);
+                dimAlgo.runAlgorithm(input, minsupp, maxitem);
                 databaseSize = dimAlgo.getDatabaseSize();
                 totalSingles = AlgoDIMBFSBased.total_singles;
                 break;
             }
             case 3: {
                 AlgoDIMDFSBased dimAlgo = new AlgoDIMDFSBased();
-                dimAlgo.runAlgorithm(input, minsupp, maxsupp, maxitem);
+                dimAlgo.runAlgorithm(input, minsupp, maxitem);
                 databaseSize = dimAlgo.getDatabaseSize();
                 totalSingles = AlgoDIMDFSBased.total_singles;
                 break;
@@ -214,7 +213,7 @@ public class Algorithm {
 
             default: {
                 AlgoDIMMFPImproved dimAlgo = new AlgoDIMMFPImproved();
-                dimAlgo.runAlgorithm(input, minsupp, maxsupp, maxitem);
+                dimAlgo.runAlgorithm(input, minsupp, maxitem);
                 databaseSize = dimAlgo.getDatabaseSize();
                 totalSingles = AlgoDIMMFPImproved.total_singles;
                 break;
