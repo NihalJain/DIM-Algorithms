@@ -275,55 +275,22 @@ public class AlgoDIMBitSetBased {
         }
         long time = 0;
         long t1, t2;
-        while (!levelItemsets.isEmpty()) {
-            //System.out.println("Level itemsets: " + levelItemsets);
-            System.out.println(countitemsets);
-            System.out.println("ENTERED NEW LEVEL");
-            
+        while (!levelItemsets.isEmpty() && !levelItemsets.get(0).isEmpty()) {
+
+            //System.out.println(countitemsets);
+            //System.out.println("Level itemsets on ENTRY: " + levelItemsets);
+            //System.out.println("ENTERED NEW LEVEL");
             t1 = System.currentTimeMillis();
             levelItemsets = processItemsets(levelItemsets);
             t2 = System.currentTimeMillis();
+            //System.out.println("Level itemsets on PRUNING: " + levelItemsets);
             System.out.println("Processing Done, Time: " + (t2 - t1));
-            
+
             //System.out.println("Level itemsets: " + levelItemsets);
             time += t2 - t1;
-            
-            t1 = System.currentTimeMillis();
-            List<List<Integer>> complimentItemsets = new ArrayList<>();
-            for (int i = 0; i < levelItemsets.size(); i++) {
-                List<Integer> currItemset = levelItemsets.get(i);
-                List<Integer> complimentItemset = findComplimentItemset(currItemset);
-                //Collections.sort(complimentItemset);
-                complimentItemsets.add(complimentItemset);
-            }
-            t2 = System.currentTimeMillis();
-            System.out.println("Complimented, Time: " + (t2 - t1));
-            //System.out.println("Compliment itemsets: " + complimentItemsets);
-            
-            t1 = System.currentTimeMillis();
-            Ordering ordering = Ordering.natural();
-            Collections.sort(complimentItemsets, ordering.lexicographical());
-            t2 = System.currentTimeMillis();
-            System.out.println("Compliment Sort, Time: " + (t2 - t1));
-            //System.out.println("Sorted Compliment itemsets: " + complimentItemsets);
-            
-            t1 = System.currentTimeMillis();
-            List<List<Integer>> genItemsets = generateCandidateSizeK(complimentItemsets);
-            t2 = System.currentTimeMillis();
-            //System.out.println("Generated itemsets: " + genItemsets);
-            System.out.println("Ap-Generation, Time: " + (t2 - t1));
-            
-            t1 = System.currentTimeMillis();
-            levelItemsets = new ArrayList<>();
-            for (int i = 0; i < genItemsets.size(); i++) {
-                List<Integer> currItemset = genItemsets.get(i);
-                List<Integer> itemset = findComplimentItemset(currItemset);
-                Collections.sort(itemset);
-                levelItemsets.add(itemset);
-            }
-            t2 = System.currentTimeMillis();
-            System.out.println("Complimented, Time: " + (t2 - t1));
-            //System.out.println("Level itemsets: " + levelItemsets);
+
+            levelItemsets = getSubsetItemsets(levelItemsets);
+            //System.out.println("Level itemsets on EXIT: " + levelItemsets);
 
         }
         // writer.close();
@@ -363,6 +330,54 @@ public class AlgoDIMBitSetBased {
             result.add(input.get(subset[i]));
         }
         return result;
+    }
+
+    private boolean checkSeq(List<Integer> itemset, int k) {
+        while (k > 0) {
+            if (itemset.get(k) - itemset.get(k - 1) == 1) {
+                k -= 1;
+            } else {
+                return false;
+            }
+        }
+
+        return k == 0 && itemset.get(0) == 0;
+    }
+
+    /**
+     * Geneates all subset itemsets of the given itemset
+     *
+     * @param itemset the itemset whose subset itemsets is required
+     * @return all the subsets of the passed itemset
+     */
+    private List<List<Integer>> generateSubsets(List<Integer> itemset) {
+        List<List<Integer>> subsetItemsets = new ArrayList<>();
+        Cloner cloner = new Cloner();
+        boolean checkSeq = false;
+        for (int k = itemset.size() - 1; k > 0; k--) {
+            // if they are the last items
+            if (checkSeq(itemset, k)) {
+                List<Integer> newItemset = cloner.deepClone(itemset);
+                newItemset.remove(k);
+                subsetItemsets.add(newItemset);
+            }
+        }
+
+        if (itemset.get(0) == 0) {
+            List<Integer> newItemset = cloner.deepClone(itemset);
+            newItemset.remove(0);
+            subsetItemsets.add(newItemset);
+        }
+        return subsetItemsets;
+    }
+
+    
+    private List<List<Integer>> getSubsetItemsets(List<List<Integer>> itemsets) {
+        List<List<Integer>> subsetItemsets = new ArrayList<>();
+        for (List<Integer> itemset : itemsets) {
+            subsetItemsets.addAll(generateSubsets(itemset));
+        }
+        return subsetItemsets;
     }
 
     /**
@@ -424,110 +439,6 @@ public class AlgoDIMBitSetBased {
         return levelItemsets;
     }
 
-    /* Generating candidate itemsets of size k from frequent itemsets of size
-     * k-1. This is called "apriori-gen" in the paper by agrawal. This method is
-     * also used by the Apriori algorithm for generating candidates.
-     * Note that this method is very optimized. It assumed that the list of
-     * itemsets received as parameter are lexically ordered.
-     * 
-     * @param levelK_1  a set of itemsets of size k-1
-     * @return a set of candidates
-     */
-    protected List<List<Integer>> generateCandidateSizeK(List<List<Integer>> levelK_1) {
-        // create a variable to store candidates
-        List<List<Integer>> candidates = new ArrayList<>();
-
-        // For each itemset I1 and I2 of level k-1
-        loop1:
-        for (int i = 0; i < levelK_1.size(); i++) {
-            List<Integer> itemset1 = levelK_1.get(i);
-            //System.out.println("1:" + itemset1);
-            loop2:
-            for (int j = i + 1; j < levelK_1.size(); j++) {
-                List<Integer> itemset2 = levelK_1.get(j);
-                //System.out.println("2:" + itemset2);
-                // we compare items of itemset1 and itemset2.
-                // If they have all the same k-1 items and the last item of
-                // itemset1 is smaller than
-                // the last item of itemset2, we will combine them to generate a
-                // candidate
-                for (int k = 0; k < itemset1.size(); k++) {
-                    // if they are the last items
-                    if (k == itemset1.size() - 1) {
-                        // the one from itemset1 should be smaller (lexical
-                        // order)
-                        // and different from the one of itemset2
-                        if (itemset1.get(k) >= itemset2.get(k)) {
-                            continue loop1;
-                        }
-                    } // if they are not the last items, and
-                    else if (itemset1.get(k) < itemset2.get(k)) {
-                        continue loop2; // we continue searching
-                    } else if (itemset1.get(k) > itemset2.get(k)) {
-                        continue loop1; // we stop searching: because of lexical
-                        // order
-                    }
-                }
-
-                // Create a new candidate by combining itemset1 and itemset2
-                int lastItem1 = itemset1.get(itemset1.size() - 1);
-                int lastItem2 = itemset2.get(itemset2.size() - 1);
-                //System.out.println(lastItem1 + " " + lastItem2);
-                Cloner cloner = new Cloner();
-                if (lastItem1 < lastItem2) {
-                    // Create a new candidate by combining itemset1 and itemset2  
-                    List<Integer> newItemset = cloner.deepClone(itemset1);
-                    newItemset.add(lastItem2);
-                    candidates.add(newItemset);
-                } else {
-                    // Create a new candidate by combining itemset1 and itemset2
-                    List<Integer> newItemset = cloner.deepClone(itemset2);
-                    newItemset.add(lastItem1);
-                    candidates.add(newItemset);
-                }
-
-            }
-        }
-        // return the set of candidates
-        return candidates;
-    }
-
-    /**
-     * Enumerate from middle recursively: VERY SLOW
-     *
-     * @param list list of items for candidates generation
-     * @param currList
-     * @param levelItemsets
-     * @param depth
-     * @param skip
-     */
-    public void Itemsets(List<Integer> list, List<Integer> currList, List<List<Integer>> levelItemsets, int depth, int skip) {
-        if (total_singles - depth <= maxitems) {
-            //float val = FindSupport(currList);
-            //System.out.println("--> depth: " + depth + "Itemset: "+ currList.toString() ); 
-            //System.out.println("--> " + currList.toString()+ " val: " + val + " tnr: " + getDatabaseSize());
-            //if (val >= minsup){
-            //countitemsets++;
-            //SortedSet<Integer> set = new TreeSet<>();
-            //set.addAll(currList);
-            levelItemsets.add(currList);
-            //test.Algorithm.frequent_list_set.add(set.toArray(newInteger[currList.size()]));
-            //test.Algorithm.frequent_list.put(set.toString(), val); //prints the freq ored itemsets 
-            //System.out.println("--> " + currList.toString() + " val:" + val + " tnr: " + getDatabaseSize()); } 
-            return;
-        }
-
-        for (int i = skip - 1; i >= 0; i--) {
-            Cloner cloner = new Cloner();
-            List<Integer> newList = cloner.deepClone(currList);
-            //System.out.println("--> depth: "+i); 
-            newList.remove(list.get(i));
-            // System.out.println("--> depth: " + depth + "Itemset: " + newList.toString());
-            Itemsets(list, newList, levelItemsets, depth + 1, i);
-        }
-
-    }
-
     /**
      *
      * @param list candidate itemset
@@ -578,4 +489,5 @@ public class AlgoDIMBitSetBased {
     public int getDatabaseSize() {
         return databaseSize;
     }
+
 }
