@@ -40,6 +40,9 @@ public class AlgoDIMBitSetBased {
     private Integer[] intKeys;
     // total candidate itemsets
     int candidateItemset = 0;
+    int prunedItemset = 0;
+    int supportCountedItemset = 0;
+    int addedToIITItemset = 0;
     FPTree tree = null;
     InfrequentItemsetsTree iiTree = null;
     float minsup;
@@ -330,12 +333,14 @@ public class AlgoDIMBitSetBased {
             //System.out.println("Level itemsets on EXIT: " + levelItemsets);
             ++currLevel;
         }
-        candidateItemset++;
         // writer.close();
         // summarizing result
         System.out.println("\nTime in support calculation:" + time);
         System.out.println("Total candidates " + candidateItemset);
         System.out.println("Total " + countitemsets + " frequent ORed Itemsets found.");
+        System.out.println("Total " + addedToIITItemset + " itemsets added to IIT.");
+        System.out.println("Total " + prunedItemset + " itemsets pruned without support count.");
+        System.out.println("Total " + supportCountedItemset + " itemsets processed for support count.");
     }
 
     /**
@@ -493,11 +498,12 @@ public class AlgoDIMBitSetBased {
             // check whether infrequent
             if (currLevel != 0) {
                 if (isSubset(currItemset)) {
+                    prunedItemset++;
                     //System.out.println("PRUNED: " + currItemset);
                     continue;
                 }
             }
-
+            supportCountedItemset++;
             float val = FindSupport(currItemset);
             //System.out.println("--> " + currItemset.toString() + " val: " + val + " tnr: " + getDatabaseSize());
 
@@ -512,6 +518,7 @@ public class AlgoDIMBitSetBased {
                 //System.out.println("--> " + currItemset.toString() + " val: " + val + " tnr: " + getDatabaseSize());
                 levelItemsets.add(currItemset);
             } else {// add the itemset to IIT
+                addedToIITItemset++;
                 iiTree.addTransaction(currItemset);
                 //System.out.println("ADDED " + currItemset + " to IIT");
             }
