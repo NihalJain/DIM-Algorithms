@@ -1,7 +1,6 @@
 package algorithm.FDIM.BitSetBased;
 
 import com.google.common.collect.Ordering;
-import static com.google.common.collect.Ordering.natural;
 import com.rits.cloning.Cloner;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -14,10 +13,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import java.util.SortedSet;
 import java.util.StringTokenizer;
-import java.util.TreeSet;
 
 /**
  * Implementation of FP tree based algorithm for finding Frequent ORed Itemsets.
@@ -58,7 +54,6 @@ public class AlgoDIMBitSetBased {
      *
      * @param input the path to an input file containing a transaction database.
      * @param minsupp the minimum support threshold.
-     * @param maxsupp the maximum support threshold.
      * @param maxitem the maximum pattern length.
      * @throws IOException exception if error reading or writing files.
      * @throws FileNotFoundException exception if input file not found.
@@ -278,43 +273,67 @@ public class AlgoDIMBitSetBased {
             //test.Algorithm.frequent_list.put(set.toString(), (float)1.0);
             levelItemsets = generateLevelOne(list, maxitems - 1);
         }
+        long time = 0;
+        long t1, t2;
         while (!levelItemsets.isEmpty()) {
             //System.out.println("Level itemsets: " + levelItemsets);
-
+            System.out.println(countitemsets);
+            System.out.println("ENTERED NEW LEVEL");
+            
+            t1 = System.currentTimeMillis();
             levelItemsets = processItemsets(levelItemsets);
+            t2 = System.currentTimeMillis();
+            System.out.println("Processing Done, Time: " + (t2 - t1));
+            
             //System.out.println("Level itemsets: " + levelItemsets);
-
+            time += t2 - t1;
+            
+            t1 = System.currentTimeMillis();
             List<List<Integer>> complimentItemsets = new ArrayList<>();
             for (int i = 0; i < levelItemsets.size(); i++) {
                 List<Integer> currItemset = levelItemsets.get(i);
-                List<Integer> complimentItemset = findComlimentItemset(currItemset);
+                List<Integer> complimentItemset = findComplimentItemset(currItemset);
                 //Collections.sort(complimentItemset);
                 complimentItemsets.add(complimentItemset);
             }
+            t2 = System.currentTimeMillis();
+            System.out.println("Complimented, Time: " + (t2 - t1));
             //System.out.println("Compliment itemsets: " + complimentItemsets);
+            
+            t1 = System.currentTimeMillis();
             Ordering ordering = Ordering.natural();
             Collections.sort(complimentItemsets, ordering.lexicographical());
+            t2 = System.currentTimeMillis();
+            System.out.println("Compliment Sort, Time: " + (t2 - t1));
             //System.out.println("Sorted Compliment itemsets: " + complimentItemsets);
+            
+            t1 = System.currentTimeMillis();
             List<List<Integer>> genItemsets = generateCandidateSizeK(complimentItemsets);
+            t2 = System.currentTimeMillis();
             //System.out.println("Generated itemsets: " + genItemsets);
-
+            System.out.println("Ap-Generation, Time: " + (t2 - t1));
+            
+            t1 = System.currentTimeMillis();
             levelItemsets = new ArrayList<>();
-
             for (int i = 0; i < genItemsets.size(); i++) {
                 List<Integer> currItemset = genItemsets.get(i);
-                List<Integer> itemset = findComlimentItemset(currItemset);
+                List<Integer> itemset = findComplimentItemset(currItemset);
                 Collections.sort(itemset);
                 levelItemsets.add(itemset);
             }
+            t2 = System.currentTimeMillis();
+            System.out.println("Complimented, Time: " + (t2 - t1));
             //System.out.println("Level itemsets: " + levelItemsets);
+
         }
         // writer.close();
         // summarizing result
+        System.out.println("Time in processsing:" + time);
         System.out.println("Total candidates " + candidateItemset);
         System.out.println("Total " + countitemsets + " frequent ORed Itemsets found.");
     }
 
-    public List<Integer> findComlimentItemset(List<Integer> currItemset) {
+    public List<Integer> findComplimentItemset(List<Integer> currItemset) {
         List<Integer> complimentItemset = new ArrayList<>();
         boolean[] included = new boolean[total_singles];
 
@@ -398,7 +417,7 @@ public class AlgoDIMBitSetBased {
                 test.Algorithm.frequent_list_set.add(set.toArray(new Integer[currItemset.size()]));
                 test.Algorithm.frequent_list.put(set.toString(), val);*/
                 //prints the freq ored itemsets
-                System.out.println("--> " + currItemset.toString() + " val: " + val + " tnr: " + getDatabaseSize());
+                //System.out.println("--> " + currItemset.toString() + " val: " + val + " tnr: " + getDatabaseSize());
                 levelItemsets.add(currItemset);
             }
         }
