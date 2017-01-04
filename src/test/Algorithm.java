@@ -208,6 +208,21 @@ public class Algorithm {
                 dimAlgo.runAlgorithm(input, minsupp, maxsupp, maxitem);
                 databaseSize = dimAlgo.getDatabaseSize();
                 totalSingles = AlgoDIMFPOR.total_singles;
+                break;            /*case 4: {
+                AlgoDIMFPOR dimAlgo = new AlgoDIMFPOR();
+                dimAlgo.runAlgorithm(input, minsupp, maxsupp, maxitem);
+                databaseSize = dimAlgo.getDatabaseSize();
+                totalSingles = AlgoDIMFPOR.total_singles;
+                break;            /*case 4: {
+                AlgoDIMFPOR dimAlgo = new AlgoDIMFPOR();
+                dimAlgo.runAlgorithm(input, minsupp, maxsupp, maxitem);
+                databaseSize = dimAlgo.getDatabaseSize();
+                totalSingles = AlgoDIMFPOR.total_singles;
+                break;            /*case 4: {
+                AlgoDIMFPOR dimAlgo = new AlgoDIMFPOR();
+                dimAlgo.runAlgorithm(input, minsupp, maxsupp, maxitem);
+                databaseSize = dimAlgo.getDatabaseSize();
+                totalSingles = AlgoDIMFPOR.total_singles;
                 break;
             }*/
 
