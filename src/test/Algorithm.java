@@ -44,9 +44,8 @@ public class Algorithm {
         int parsed = 0;
         //Scanner sc = new Scanner(System.in);
         
-        /*jar mode
-        
-        if (args.length != 6) {
+        System.out.println(args.length);
+        if (args.length != 5) {
             System.out.print("error: Missing argument!");
             System.exit(-1);
         }
@@ -54,7 +53,9 @@ public class Algorithm {
         // ------------Input file --------------
         //System.out.print("Enter Input file path : ");
         try {
-            input = args[1]; //fileToPath(args[1]); //use this for IDE(testing)
+            //input = args[1]; jar mode
+            input = fileToPath(args[1]); //use this for IDE(testing)
+            System.out.println(input);
         } catch (Exception e) {
             System.err.println("error: Input file not found.");
             System.exit(-1);
@@ -77,54 +78,6 @@ public class Algorithm {
             System.exit(-1);
         }
         
-        try {
-            maxsupp = Float.valueOf(args[4]);
-        } catch (Exception e) {
-            System.err.println("error: Invalid input for minimum Support.");
-            System.exit(-1);
-        }
-        
-        //assigns maximum length of the pattern to search forto run
-        try {
-            maxitem = Integer.parseInt(args[5]);    
-        } catch(Exception e) {
-            System.err.println("error: No maxitem specified.");
-            System.exit(-1);
-        }
-        
-        /*/
-        
-        if (args.length != 4) {
-            System.out.print("error: Missing argument!");
-            System.exit(-1);
-        }
-
-        // ------------Input file --------------
-        //System.out.print("Enter Input file path : ");
-        try {
-            input = fileToPath(args[0]); //use this for IDE(testing)
-        } catch (Exception e) {
-            System.err.println("error: Input file not found.");
-            System.exit(-1);
-        }
-        
-        //assigns which algorithm to run
-        try {
-            whichAlgo = Integer.parseInt(args[1]);    
-        } catch(Exception e) {
-            System.err.println("error: No algorithm specified.");
-            System.exit(-1);
-        }
-        
-        // ------------Support --------------
-        //System.out.print("Enter Support Threshold : ");
-        try {
-            minsupp = Float.valueOf(args[2]);
-        } catch (Exception e) {
-            System.err.println("error: Invalid input for minimum Support.");
-            System.exit(-1);
-        }
-        
         /*try {
             maxsupp = Float.valueOf(args[3]);
         } catch (Exception e) {
@@ -134,7 +87,7 @@ public class Algorithm {
         
         //assigns maximum length of the pattern to search forto run
         try {
-            maxitem = Integer.parseInt(args[3]);    
+            maxitem = Integer.parseInt(args[4]);    
         } catch(Exception e) {
             System.err.println("error: No maxitem specified.");
             System.exit(-1);
