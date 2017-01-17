@@ -44,7 +44,7 @@ public class Algorithm {
         int parsed = 0;
         //Scanner sc = new Scanner(System.in);
         
-        System.out.println(args.length);
+        //System.out.println(args.length);
         if (args.length != 5) {
             System.out.print("error: Missing argument!");
             System.exit(-1);
@@ -53,9 +53,9 @@ public class Algorithm {
         // ------------Input file --------------
         //System.out.print("Enter Input file path : ");
         try {
-            //input = args[1]; jar mode
-            input = fileToPath(args[1]); //use this for IDE(testing)
-            System.out.println(input);
+            input = args[1]; //jar mode
+            //input = fileToPath(args[1]); //use this for IDE(testing)
+            //System.out.println(input);
         } catch (Exception e) {
             System.err.println("error: Input file not found.");
             System.exit(-1);
@@ -111,7 +111,7 @@ public class Algorithm {
                 System.out.println("                       DIM BFS Based ALGORITHM");
                 break;
             case 3:
-                System.out.println("                       DIM BFS Based ALGORITHM");
+                System.out.println("                       DIM DFS Based ALGORITHM");
                 break;
             case 4:
                 System.out.println("                       DIM FP-OR ALGORITHM");
