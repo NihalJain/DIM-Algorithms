@@ -268,31 +268,16 @@ public class AlgoDIMBitSet {
 
     }
 
-    /**
-     * Generate actual subset by index sequence
-     *
-     * @param input
-     * @param subset
-     * @return
-     */
-    public List<Integer> getSubset(List<Integer> input, int[] subset) {
-        List<Integer> result = new ArrayList<>();
-        for (int i = 0; i < subset.length; i++) {
-            result.add(input.get(subset[i]));
-        }
-        return result;
-    }
-
     private boolean checkSeq(List<Integer> itemset, int k) {
         while (k > 0) {
             if (itemset.get(k) - itemset.get(k - 1) == 1) {
-                k -= 1;
+                --k;
             } else {
                 return false;
             }
         }
 
-        return k == 0;
+        return true;//k == 0;
     }
 
     /**
@@ -306,14 +291,18 @@ public class AlgoDIMBitSet {
         if (itemset.contains(0)) {
             for (int k = itemset.size() - 1; k > 0; k--) {
                 if (checkSeq(itemset, k)) {
-                    List<Integer> newItemset = cloner.deepClone(itemset);
+                    //List<Integer> newItemset = cloner.deepClone(itemset);
+                    List<Integer> newItemset = new ArrayList<>(itemset);
+                    //newItemset.addAll(itemset);
                     newItemset.remove(k);
                     subsetItemsets.add(newItemset);
                 }
             }
 
             //if (itemset.get(0) == 0) {
-            List<Integer> newItemset = cloner.deepClone(itemset);
+            //List<Integer> newItemset = cloner.deepClone(itemset);
+            List<Integer> newItemset = new ArrayList<>(itemset);
+            //newItemset.addAll(itemset);
             newItemset.remove(0);
             subsetItemsets.add(newItemset);
             //}
@@ -331,6 +320,21 @@ public class AlgoDIMBitSet {
     }
 
     /**
+     * Generate actual subset by index sequence
+     *
+     * @param input
+     * @param subset
+     * @return
+     */
+    /*public List<Integer> getSubset(List<Integer> input, List<Integer> subset) {
+        List<Integer> result = new ArrayList<>(subset);
+        //for (int i = 0; i < subset.length; i++) {
+            //result.add(input.get(subset[i]));
+        //}
+        
+        return result;
+    }*/
+    /**
      * Enumerate from middle non-recursively: VERY FAST
      *
      * @param input
@@ -340,29 +344,36 @@ public class AlgoDIMBitSet {
     public List<List<Integer>> generateLevelOne(List<Integer> input, int maxitems) {
         List<List<Integer>> subsets = new ArrayList<>();
 
-        int[] s = new int[maxitems];                  // here we'll keep indices 
-        // pointing to elements in input array
+        //int[] s = new int[maxitems];                  // here we'll keep indices 
+        List<Integer> s = new ArrayList<>();
+        for (int i = 0; i < maxitems; i++) {
+            s.add(i);
+        }
 
+        // pointing to elements in input array
         if (maxitems <= input.size()) {
             // first index sequence: 0, 1, 2, ...
-            for (int i = 0; (s[i] = i) < maxitems - 1; i++) {
+            for (int i = 0; (s.set(i, i)) < maxitems - 1; i++) {
                 //empty-statement
             }
-            subsets.add(getSubset(input, s));
+            //subsets.add(getSubset(input, s));
+            subsets.add(new ArrayList<>(s));
             while (true) {
                 int i;
                 // find position of item that can be incremented
-                for (i = maxitems - 1; i >= 0 && s[i] == input.size() - maxitems + i; i--) {
+                for (i = maxitems - 1; i >= 0 && s.get(i) == input.size() - maxitems + i; i--) {
                     //empty-statement
                 }
                 if (i < 0) {
                     break;
                 } else {
-                    s[i]++;                    // increment this item
+                    //s[i]++;                    // increment this item
+                    s.set(i, s.get(i) + 1);
                     for (++i; i < maxitems; i++) {    // fill up remaining items
-                        s[i] = s[i - 1] + 1;
+                        s.set(i, s.get(i - 1) + 1);
                     }
-                    subsets.add(getSubset(input, s));
+                    //subsets.add(getSubset(input, s));
+                    subsets.add(new ArrayList<>(s));
 
                 }
             }
@@ -373,8 +384,9 @@ public class AlgoDIMBitSet {
 
     public List<List<Integer>> processItemsets(List<List<Integer>> itemsets) {
         List<List<Integer>> levelItemsets = new ArrayList<>();
-        for (int i = 0; i < itemsets.size(); i++) {
-            List<Integer> currItemset = itemsets.get(i);
+        //for (int i = 0; i < itemsets.size(); i++) {
+        for (List<Integer> currItemset : itemsets) {
+            //List<Integer> currItemset = itemsets.get(i);
             float val = FindSupport(currItemset);
             //System.out.println("--> " + currItemset.toString() + " val: " + val + " tnr: " + getDatabaseSize());
 
@@ -399,8 +411,8 @@ public class AlgoDIMBitSet {
      * @return support of itemset
      */
     private float FindSupport(List<Integer> list) {
-        BitSet temp = cloner.deepClone(dT.get(0));
-        for (int k = 1; k < list.size(); k++) {
+        BitSet temp = new BitSet(databaseSize);//cloner.deepClone(dT.get(0));
+        for (int k = 0; k < list.size(); k++) {
             temp.or(dT.get(k));
 
         }
