@@ -5,7 +5,6 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
@@ -16,55 +15,45 @@ import java.util.Map;
 import java.util.StringTokenizer;
 
 /**
- * Implementation of FP tree based algorithm for finding Frequent ORed Itemsets.
+ * Implementation of bitset based algorithm for finding Frequent ORed Itemsets.
  *
  * @author nihal jain
  * @version 1.0
  */
 public class AlgoDIMBitSet {
+
     Cloner cloner = new Cloner();
-    // Number of transactions in the database
-    private int transactionCount = 0;
-    // PrintWriter object to write the output file
-    PrintWriter writer = null;
-    /**
-     * number of transactions in the database
-     */
+
+    // number of transactions in the database
     public static int databaseSize;
     // Hashmap for storing frequencies of each item in dataset
     final Map<Integer, Integer> mapSupport = new HashMap<>();
-    /**
-     * Number of items in dataset
-     */
+    // number of items in database
     public static int total_singles = 0;
     // all unique items present in dataset
     private Integer[] intKeys;
-    // total candidate itemsets
-    int candidateItemset = 0;
-    int prunedItemset = 0;
-    int supportCountedItemset = 0;
-    int addedToIITItemset = 0;
-    
+
     List<BitSet> dT;
-    
-    float minsup;
-    int maxitems, countitemsets = 0;
-    int countt = 0;
-    Integer preference[];
-    // used by dfs for support counting
-    private final int sumOfSupport = 0;
-    private int currLevel;
+
+    float _minsupp;
+    int _maxitems;
+    // total candidate itemsets
+    int candidateItemsetsCount = 0;
+    // total frequent itemsets discovered
+    int freqItemsetsCount = 0;
+    // current level under inspection
+    private int currLevel = 0;
 
     /**
      * Method to run the FP tree based ORed Itemset generation algorithm.
      *
      * @param input the path to an input file containing a transaction database.
      * @param minsupp the minimum support threshold.
-     * @param maxitem the maximum pattern length.
+     * @param maxitems the maximum pattern length.
      * @throws IOException exception if error reading or writing files.
      * @throws FileNotFoundException exception if input file not found.
      */
-    public void runAlgorithm(String input, float minsupp, int maxitem) throws FileNotFoundException, IOException {
+    public void runAlgorithm(String input, float minsupp, int maxitems) throws FileNotFoundException, IOException {
 
         // reset the transaction count
         databaseSize = 0;
@@ -119,7 +108,6 @@ public class AlgoDIMBitSet {
         // Before inserting a transaction in the FPTree, we sort the items
         // by descending order of support. We ignore items that
         // do not have the minimum support.
-       
         // read the file
         BufferedReader reader = null;
         try {
@@ -129,14 +117,13 @@ public class AlgoDIMBitSet {
             System.exit(-1);
         }
         String line;
-        
+
         dT = new ArrayList<>();
-        for(int i = 0; i < total_singles;i++)
-        {
-            dT.add(new BitSet(transactionCount));
+        for (int i = 0; i < total_singles; i++) {
+            dT.add(new BitSet(databaseSize));
         }
         // for each line (transaction) until the end of the file
-        int tID =1;
+        int tID = 1;
         while (((line = reader.readLine()) != null)) {
             // if the line is a comment, is empty or is a kind of metadata
             if (line.isEmpty() == true || line.charAt(0) == '#' || line.charAt(0) == '%' || line.charAt(0) == '@') {
@@ -148,11 +135,10 @@ public class AlgoDIMBitSet {
             // for each item in the transaction
             while (lineSplited.hasMoreElements()) {
                 Integer item = Integer.parseInt(lineSplited.nextToken());
-                dT.get(item).set(tID);                
+                dT.get(item).set(tID);
             }
 
             // increase the transaction count
-            databaseSize++;
             tID++;
         }
         // close the input file
@@ -161,8 +147,8 @@ public class AlgoDIMBitSet {
         System.out.println("Tree build time : " + (t2 - t1) + "ms");
         t1 = System.currentTimeMillis();
         // calling FPOred function on TREE tree with minsupp.
-        minsup = minsupp;
-        maxitems = maxitem;
+        _minsupp = minsupp;
+        _maxitems = maxitems;
         FPORed();
         t2 = System.currentTimeMillis();
 
@@ -211,7 +197,8 @@ public class AlgoDIMBitSet {
                 //System.out.println(item);
             }
             // increase the transaction count
-            transactionCount++;
+            //transactionCount++;
+            databaseSize++;
         }
         //System.out.println(mapSupport);
         // close the input file
@@ -228,34 +215,32 @@ public class AlgoDIMBitSet {
 
         List<Integer> list = new ArrayList<>();
         //List<Integer> origList = new ArrayList<>();
-        preference = new Integer[total_singles];
+        //preference = new Integer[total_singles];
         for (Integer i = 0; i < intKeys.length; i++) {
             list.add(intKeys[i]);
         }
 
-        
         long time = 0;
         long t1, t2;
         List<List<Integer>> levelItemsets = new ArrayList<>();
         t1 = System.currentTimeMillis();
 
-        currLevel = 0;
-        if (maxitems < total_singles) {
-            levelItemsets = generateLevelOne(list, maxitems);
+        if (_maxitems < total_singles) {
+            levelItemsets = generateLevelOne(list, _maxitems);
         } else {
-            countitemsets++;
+            freqItemsetsCount++;
             //SortedSet<Integer> set = new TreeSet<>();
             //set.addAll(list);
             //test.Algorithm.frequent_list_set.add(set.toArray(new Integer[list.size()]));
             //test.Algorithm.frequent_list.put(set.toString(), (float)1.0);
-            levelItemsets = generateLevelOne(list, maxitems - 1);
+            levelItemsets = generateLevelOne(list, _maxitems - 1);
         }
         t2 = System.currentTimeMillis();
         System.out.println("\nMiddle lattice generation, Time: " + (t2 - t1));
         while (!levelItemsets.isEmpty() && !levelItemsets.get(0).isEmpty()) {
-            candidateItemset += levelItemsets.size();
+            candidateItemsetsCount += levelItemsets.size();
             System.out.println("\nLEVEL: " + currLevel);
-            //System.out.println(countitemsets);
+            //System.out.println(freqItemsetsCount);
             //System.out.println("Level itemsets on ENTRY: " + levelItemsets);
             //System.out.println("ENTERED NEW LEVEL");
             t1 = System.currentTimeMillis();
@@ -269,19 +254,18 @@ public class AlgoDIMBitSet {
             levelItemsets = getSubsetItemsets(levelItemsets);
             t2 = System.currentTimeMillis();
             System.out.println("Subset Generation, Time: " + (t2 - t1));
-            
-            
+
             ++currLevel;
         }
-        // writer.close();
+
         // summarizing result
         System.out.println("\nTime in support calculation:" + time);
-        System.out.println("Total candidates " + candidateItemset);
-        System.out.println("Total " + countitemsets + " frequent ORed Itemsets found.");
+        System.out.println("Total candidates " + candidateItemsetsCount);
+        System.out.println("Total " + freqItemsetsCount + " frequent ORed Itemsets found.");
         //System.out.println("Total " + addedToIITItemset + " itemsets added to IIT.");
         //System.out.println("Total " + prunedItemset + " itemsets pruned without support count.");
         //System.out.println("Total " + supportCountedItemset + " itemsets processed for support count.");
-        
+
     }
 
     /**
@@ -353,7 +337,6 @@ public class AlgoDIMBitSet {
      * @param maxitems
      * @return
      */
-    @SuppressWarnings("empty-statement")
     public List<List<Integer>> generateLevelOne(List<Integer> input, int maxitems) {
         List<List<Integer>> subsets = new ArrayList<>();
 
@@ -362,12 +345,16 @@ public class AlgoDIMBitSet {
 
         if (maxitems <= input.size()) {
             // first index sequence: 0, 1, 2, ...
-            for (int i = 0; (s[i] = i) < maxitems - 1; i++);
+            for (int i = 0; (s[i] = i) < maxitems - 1; i++) {
+                //empty-statement
+            }
             subsets.add(getSubset(input, s));
-            for (;;) {
+            while (true) {
                 int i;
                 // find position of item that can be incremented
-                for (i = maxitems - 1; i >= 0 && s[i] == input.size() - maxitems + i; i--);
+                for (i = maxitems - 1; i >= 0 && s[i] == input.size() - maxitems + i; i--) {
+                    //empty-statement
+                }
                 if (i < 0) {
                     break;
                 } else {
@@ -376,11 +363,11 @@ public class AlgoDIMBitSet {
                         s[i] = s[i - 1] + 1;
                     }
                     subsets.add(getSubset(input, s));
-                
-             }
+
+                }
             }
         }
-        
+
         return subsets;
     }
 
@@ -388,13 +375,11 @@ public class AlgoDIMBitSet {
         List<List<Integer>> levelItemsets = new ArrayList<>();
         for (int i = 0; i < itemsets.size(); i++) {
             List<Integer> currItemset = itemsets.get(i);
-
-            supportCountedItemset++;
             float val = FindSupport(currItemset);
             //System.out.println("--> " + currItemset.toString() + " val: " + val + " tnr: " + getDatabaseSize());
 
-            if (val >= minsup) {
-                countitemsets++;
+            if (val >= _minsupp) {
+                freqItemsetsCount++;
                 /*SortedSet<Integer> set = new TreeSet<>();
                 set.addAll(currItemset);
                 
@@ -414,14 +399,12 @@ public class AlgoDIMBitSet {
      * @return support of itemset
      */
     private float FindSupport(List<Integer> list) {
-        long sum = 0;
         BitSet temp = cloner.deepClone(dT.get(0));
         for (int k = 1; k < list.size(); k++) {
             temp.or(dT.get(k));
-            
+
         }
-        return ((float) temp.cardinality()/getDatabaseSize());
-        
+        return ((float) temp.cardinality() / getDatabaseSize());
     }
 
     /**
@@ -432,5 +415,4 @@ public class AlgoDIMBitSet {
     public int getDatabaseSize() {
         return databaseSize;
     }
-
 }

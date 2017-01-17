@@ -22,10 +22,6 @@ import java.util.StringTokenizer;
  */
 public class AlgoDIMBitSetBased {
     
-    // Number of transactions in the database
-    private int transactionCount = 0;
-    // PrintWriter object to write the output file
-    PrintWriter writer = null;
     /**
      * number of transactions in the database
      */
@@ -221,7 +217,7 @@ public class AlgoDIMBitSetBased {
                 //System.out.println(item);
             }
             // increase the transaction count
-            transactionCount++;
+            //transactionCount++;
         }
         //System.out.println(mapSupport);
         // close the input file

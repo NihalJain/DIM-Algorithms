@@ -1,6 +1,7 @@
 package test;
 
 import algorithm.FDIM.BFSBased.AlgoDIMBFSBased;
+import algorithm.FDIM.BitSet.AlgoDIMBitSet;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -43,7 +44,7 @@ public class Algorithm {
         int whichAlgo = 0, maxitem = 0;
         int parsed = 0;
         //Scanner sc = new Scanner(System.in);
-        
+
         //System.out.println(args.length);
         if (args.length != 5) {
             System.out.print("error: Missing argument!");
@@ -54,21 +55,21 @@ public class Algorithm {
         //System.out.print("Enter Input file path : ");
         try {
             input = args[1]; //jar mode
-            //input = fileToPath(args[1]); //use this for IDE(testing)
+            input = fileToPath(args[1]); //use this for IDE(testing)
             //System.out.println(input);
         } catch (Exception e) {
             System.err.println("error: Input file not found.");
             System.exit(-1);
         }
-        
+
         //assigns which algorithm to run
         try {
-            whichAlgo = Integer.parseInt(args[2]);    
-        } catch(Exception e) {
+            whichAlgo = Integer.parseInt(args[2]);
+        } catch (Exception e) {
             System.err.println("error: No algorithm specified.");
             System.exit(-1);
         }
-        
+
         // ------------Support --------------
         //System.out.print("Enter Support Threshold : ");
         try {
@@ -77,22 +78,20 @@ public class Algorithm {
             System.err.println("error: Invalid input for minimum Support.");
             System.exit(-1);
         }
-        
+
         /*try {
             maxsupp = Float.valueOf(args[3]);
         } catch (Exception e) {
             System.err.println("error: Invalid input for minimum Support.");
             System.exit(-1);
         }*/
-        
         //assigns maximum length of the pattern to search forto run
         try {
-            maxitem = Integer.parseInt(args[4]);    
-        } catch(Exception e) {
+            maxitem = Integer.parseInt(args[4]);
+        } catch (Exception e) {
             System.err.println("error: No maxitem specified.");
             System.exit(-1);
         }
-        
 
         // preprocess dataset
         long parseStart = System.currentTimeMillis();
@@ -114,7 +113,7 @@ public class Algorithm {
                 System.out.println("                       DIM DFS Based ALGORITHM");
                 break;
             case 4:
-                System.out.println("                       DIM FP-OR ALGORITHM");
+                System.out.println("                       DIM BitSet ALGORITHM");
                 break;
             default:
                 System.out.println("                        DIM MFP-Improved");
@@ -126,7 +125,7 @@ public class Algorithm {
         System.out.println("=======================================================================");
         System.out.println("DataSet : " + input);
         System.out.println("Min. Support Threshold : " + minsupp);
-        System.out.println("Maximum pattern size : " + maxitem); 
+        System.out.println("Maximum pattern size : " + maxitem);
         System.out.println("-----------------------------------------------------------------------");
 
         // PHASE 1: finding All frequent ORed itemsets
@@ -156,12 +155,14 @@ public class Algorithm {
                 totalSingles = AlgoDIMDFSBased.total_singles;
                 break;
             }
-            /*case 4: {
-                AlgoDIMFPOR dimAlgo = new AlgoDIMFPOR();
-                dimAlgo.runAlgorithm(input, minsupp, maxsupp, maxitem);
+            case 4: {
+                AlgoDIMBitSet dimAlgo = new AlgoDIMBitSet();
+                dimAlgo.runAlgorithm(input, minsupp, maxitem);
                 databaseSize = dimAlgo.getDatabaseSize();
-                totalSingles = AlgoDIMFPOR.total_singles;
-                break;            /*case 4: {
+                totalSingles = AlgoDIMBitSet.total_singles;
+                break;
+            }
+            /*case 4: {
                 AlgoDIMFPOR dimAlgo = new AlgoDIMFPOR();
                 dimAlgo.runAlgorithm(input, minsupp, maxsupp, maxitem);
                 databaseSize = dimAlgo.getDatabaseSize();
