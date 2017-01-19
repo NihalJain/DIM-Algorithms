@@ -56,7 +56,7 @@ public class ParseDataset {
         }
         String out = (String) input.subSequence(0, i);
         out += "_int.txt";
-        System.out.println("Mapped Input file: " + out);
+        System.err.println("Mapped Input file: " + out);
         try {
             writer = new PrintWriter(out, "UTF-8");
 
@@ -109,7 +109,7 @@ public class ParseDataset {
             System.out.println("error: Unable to close input or output file");
         }
 	
-        // System.out.println(mapitem);
+         System.err.println(mapitem);
 
         // returning new input path
         return out;

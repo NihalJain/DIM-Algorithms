@@ -47,7 +47,7 @@ public class Algorithm {
 
         //System.out.println(args.length);
         if (args.length != 5) {
-            System.out.print("error: Missing argument!");
+            System.err.print("error: Missing argument!");
             System.exit(-1);
         }
 
@@ -192,8 +192,8 @@ public class Algorithm {
         long lEndTime = System.currentTimeMillis();
 
         // summarizing results
-        System.out.println("----------------------------------------------------------------------");
-        System.out.println("DATABASE SIZE " + databaseSize + " Total items : " + totalSingles);
+        System.err.println("----------------------------------------------------------------------");
+        System.err.println("DATABASE SIZE " + databaseSize + " Total items : " + totalSingles);
         System.out.println("Elapsed milliseconds (Preprocessing): " + (parseEnd - parseStart));
         System.out.println("Elapsed milliseconds ( FPTree + ORed Itemsets): " + (lEndTime - lStartTime));
         System.out.println("Elapsed milliseconds (Total time => Preprocessing + ORed itemsets): " + (lEndTime - parseStart));
@@ -204,13 +204,13 @@ public class Algorithm {
             Process p = Runtime.getRuntime().exec(" ps -C java -O rss");
             BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
             while ((s = br.readLine()) != null) {
-                System.out.println(s);
+                System.err.println(s);
             }
 
         } catch (Exception ex) {
-            System.out.println("unable to get memory Utilization.");
+            System.err.println("unable to get memory Utilization.");
         }
-        System.out.println("======================================================================\n\n");
+        System.err.println("======================================================================\n\n");
     }
 
     /**

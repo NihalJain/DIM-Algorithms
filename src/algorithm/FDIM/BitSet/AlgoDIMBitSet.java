@@ -67,7 +67,7 @@ public class AlgoDIMBitSet {
         scanDatabaseToDetermineFrequencyOfSingleItems(input);
         long t2 = System.currentTimeMillis();
         // Displaying frequency counting time
-        System.out.println("Item Frequency counting time : " + (t2 - t1) + " ms");
+        System.err.println("Item Frequency counting time : " + (t2 - t1) + " ms");
         t1 = System.currentTimeMillis();
         // assigning total unique items
         total_singles = (int) mapSupport.size();
@@ -147,7 +147,7 @@ public class AlgoDIMBitSet {
         // close the input file
         reader.close();
         t2 = System.currentTimeMillis();
-        System.out.println("Tree build time : " + (t2 - t1) + "ms");
+        System.err.println("Tree build time : " + (t2 - t1) + "ms");
         t1 = System.currentTimeMillis();
         // calling FPOred function on TREE tree with minsupp.
         _minsupp = minsupp * databaseSize;
@@ -156,7 +156,7 @@ public class AlgoDIMBitSet {
         t2 = System.currentTimeMillis();
 
         // itemset finding time
-        System.out.println("TOTAL Itemset Finding Time : " + (t2 - t1) + "ms");
+        //System.out.println("TOTAL Itemset Finding Time : " + (t2 - t1) + "ms");
     }
 
     /**
@@ -203,7 +203,7 @@ public class AlgoDIMBitSet {
             //transactionCount++;
             databaseSize++;
         }
-        System.out.println(mapSupport);
+        System.err.println(mapSupport);
         // close the input file
         reader.close();
     }
@@ -225,14 +225,14 @@ public class AlgoDIMBitSet {
             if (mapSupport.get(intKeys[i]) >= _minsupp) {
                 list.add(intKeys[i]);
             } else {
-                System.out.println("Pruned item "+intKeys[i]+" due to single item infrequency.");
+                System.err.println("Pruned item "+intKeys[i]+" due to single item infrequency.");
                 pruned_singles++;
             }
         }
         int remainingSingles = total_singles - pruned_singles;
         //System.out.println(remainingSingles);
         if (remainingSingles == 0) {
-            System.out.println("NO candidates satsify the min supp condition!");
+            System.err.println("NO candidates satsify the min supp condition!");
             return;
         } else if (remainingSingles < _maxitems) {
             _maxitems = remainingSingles;
