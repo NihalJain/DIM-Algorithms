@@ -1,75 +1,69 @@
-package algorithm.FDIM.BitSet;
+package algorithm.FDIM.BitSetBasedNoIIT;
 
-import com.rits.cloning.Cloner;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
-import org.apache.commons.lang3.tuple.MutablePair;
 
 /**
- * Implementation of bitset based algorithm for finding Frequent ORed Itemsets.
+ * Implementation of FP tree based algorithm for finding Frequent ORed Itemsets.
  *
  * @author nihal jain
  * @version 1.0
  */
-public class AlgoDIMBitSet {
-
-    Cloner cloner = new Cloner();
-
-    // number of transactions in the database
+public class AlgoDIMBitSetBasedNoIIT {
+    
+    /**
+     * number of transactions in the database
+     */
     public static int databaseSize;
     // Hashmap for storing frequencies of each item in dataset
     final Map<Integer, Integer> mapSupport = new HashMap<>();
-    // number of items in database
+    /**
+     * Number of items in dataset
+     */
     public static int total_singles = 0;
     // all unique items present in dataset
     private Integer[] intKeys;
-
-    List<BitSet> dT;
-
-    float _minsupp;
-    int _maxitems;
     // total candidate itemsets
-    int candidateItemsetsCount = 0;
-    // total frequent itemsets discovered
-    int freqItemsetsCount = 0;
-    // current level under inspection
-    private int currLevel = 0;
-
-    int closedItemsetsCount = 0;
-    //HashMap<String, MutablePair<Integer, List<String>>> tidsetTable = new HashMap<>();
-    HashMap<Integer, MutablePair<Integer, List<String>>> tidsetTable = new HashMap<>();
+    int candidateItemset = 0;
+    FPTree tree = null;
+    float minsup;
+    int maxitems, countitemsets = 0;
+    int countt = 0;
+    Integer preference[];
+    // used by dfs for support counting
+    private final int sumOfSupport = 0;
+    private int currLevel;
 
     /**
      * Method to run the FP tree based ORed Itemset generation algorithm.
      *
      * @param input the path to an input file containing a transaction database.
      * @param minsupp the minimum support threshold.
-     * @param maxitems the maximum pattern length.
+     * @param maxitem the maximum pattern length.
      * @throws IOException exception if error reading or writing files.
      * @throws FileNotFoundException exception if input file not found.
      */
-    public void runAlgorithm(String input, float minsupp, int maxitems) throws FileNotFoundException, IOException {
+    public void runAlgorithm(String input, float minsupp, int maxitem) throws FileNotFoundException, IOException {
 
         // reset the transaction count
         databaseSize = 0;
+
         // (1) Initial database scan to determine the frequency of each item
         // The frequency is stored in a map:- key: item value: support
         long t1 = System.currentTimeMillis();
         scanDatabaseToDetermineFrequencyOfSingleItems(input);
         long t2 = System.currentTimeMillis();
         // Displaying frequency counting time
-        System.err.println("Item Frequency counting time : " + (t2 - t1) + " ms");
+        System.out.println("Item Frequency counting time : " + (t2 - t1) + " ms");
         t1 = System.currentTimeMillis();
         // assigning total unique items
         total_singles = (int) mapSupport.size();
@@ -113,6 +107,8 @@ public class AlgoDIMBitSet {
         // Before inserting a transaction in the FPTree, we sort the items
         // by descending order of support. We ignore items that
         // do not have the minimum support.
+        tree = new FPTree(mapSupport.size());
+        tree.root.nodeID = 0;
         // read the file
         BufferedReader reader = null;
         try {
@@ -122,13 +118,7 @@ public class AlgoDIMBitSet {
             System.exit(-1);
         }
         String line;
-
-        dT = new ArrayList<>();
-        for (int i = 0; i < total_singles; i++) {
-            dT.add(new BitSet(databaseSize));
-        }
         // for each line (transaction) until the end of the file
-        int tID = 1;
         while (((line = reader.readLine()) != null)) {
             // if the line is a comment, is empty or is a kind of metadata
             if (line.isEmpty() == true || line.charAt(0) == '#' || line.charAt(0) == '%' || line.charAt(0) == '@') {
@@ -140,25 +130,44 @@ public class AlgoDIMBitSet {
             // for each item in the transaction
             while (lineSplited.hasMoreElements()) {
                 Integer item = Integer.parseInt(lineSplited.nextToken());
-                dT.get(item).set(tID);
+                // only add items that have the minimum support
+                // if(!transaction.contains(item))
+                transaction.add(item);
             }
 
+            // sort item in the transaction by descending order of support
+            Collections.sort(transaction, new Comparator<Integer>() {
+                @Override
+                public int compare(Integer item1, Integer item2) {
+                    // compare the frequency
+                    int compare = mapSupport.get(item2) - mapSupport.get(item1);
+                    // if the same frequency, we check the lexical ordering!
+                    if (compare == 0) {
+                        return (item1 - item2);
+                    }
+                    // otherwise, just use the frequency
+                    return compare;
+                }
+            });
+
+            // add the sorted transaction to the fptree.
+            tree.addTransaction(transaction);
             // increase the transaction count
-            tID++;
+            databaseSize++;
         }
         // close the input file
         reader.close();
         t2 = System.currentTimeMillis();
-        System.err.println("Tree build time : " + (t2 - t1) + "ms");
+        System.out.println("Tree build time : " + (t2 - t1) + "ms");
         t1 = System.currentTimeMillis();
         // calling FPOred function on TREE tree with minsupp.
-        _minsupp = minsupp * databaseSize;
-        _maxitems = maxitems;
+        minsup = minsupp;
+        maxitems = maxitem;
         FPORed();
         t2 = System.currentTimeMillis();
 
         // itemset finding time
-        //System.out.println("TOTAL Itemset Finding Time : " + (t2 - t1) + "ms");
+        System.out.println("TOTAL Itemset Finding Time : " + (t2 - t1) + "ms");
     }
 
     /**
@@ -203,9 +212,8 @@ public class AlgoDIMBitSet {
             }
             // increase the transaction count
             //transactionCount++;
-            databaseSize++;
         }
-        System.err.println(mapSupport);
+        //System.out.println(mapSupport);
         // close the input file
         reader.close();
     }
@@ -220,88 +228,133 @@ public class AlgoDIMBitSet {
 
         List<Integer> list = new ArrayList<>();
         //List<Integer> origList = new ArrayList<>();
-        //preference = new Integer[total_singles];
-        int pruned_singles = 0;
+        preference = new Integer[total_singles];
         for (Integer i = 0; i < intKeys.length; i++) {
-            //System.out.println(mapSupport.get(intKeys[i]));
-            if (mapSupport.get(intKeys[i]) >= _minsupp) {
-                list.add(intKeys[i]);
-            } else {
-                System.err.println("Pruned item "+intKeys[i]+" due to single item infrequency.");
-                pruned_singles++;
-            }
-        }
-        int remainingSingles = total_singles - pruned_singles;
-        //System.out.println(remainingSingles);
-        if (remainingSingles == 0) {
-            System.err.println("NO candidates satsify the min supp condition!");
-            return;
-        } else if (remainingSingles < _maxitems) {
-            _maxitems = remainingSingles;
+            list.add(intKeys[i]);
         }
 
+        /*Cloner cloner = new Cloner();
+        origList = cloner.deepClone(list);
+        System.out.println("Original List: " + origList.toString());*/
+        Collections.sort(list, new Comparator<Integer>() {
+            @Override
+            public int compare(Integer item1, Integer item2) {
+                // compare the frequency
+                int compare = mapSupport.get(item2) - mapSupport.get(item1);
+                // if the same frequency, we check the lexical ordering!
+                if (compare == 0) {
+                    return (item1 - item2);
+                }
+                // otherwise, just use the frequency
+                return compare;
+            }
+        });
+        for (int i = 0; i < intKeys.length; i++) {
+            preference[list.get(i)] = i;
+        }
+
+        //System.out.println("Mapped List: " + list.toString());
         long time = 0;
         long t1, t2;
         List<List<Integer>> levelItemsets = new ArrayList<>();
         t1 = System.currentTimeMillis();
-
-        if (_maxitems < total_singles) {
-
-            levelItemsets = generateLevelOne(list, _maxitems);
+        
+        //ICombinatoricsVector<Integer> initialVector = Factory.createVector(list);
+        currLevel = 0;
+        if (maxitems < total_singles) {
+            levelItemsets = generateLevelOne(list, maxitems);
+            //levelItemsets =  Generator.combination(list).simple(maxitems).stream().collect(Collectors.<List<Integer>>toList());
         } else {
-            System.out.println("\nLEVEL: " + currLevel);
-            currLevel++;
-            processItemset(list);
-            levelItemsets = generateLevelOne(list, _maxitems - 1);
+            countitemsets++;
+            //SortedSet<Integer> set = new TreeSet<>();
+            //set.addAll(list);
+            //test.Algorithm.frequent_list_set.add(set.toArray(new Integer[list.size()]));
+            //test.Algorithm.frequent_list.put(set.toString(), (float)1.0);
+            levelItemsets = generateLevelOne(list, maxitems - 1);
+            //levelItemsets = (List<List<Integer>>) Generator.combination(list).simple(maxitems-1).stream().collect(Collectors.<List<Integer>>toList());;
         }
         t2 = System.currentTimeMillis();
-        System.err.println("\nMiddle lattice generation, Time: " + (t2 - t1));
+        System.out.println("\nMiddle lattice generation, Time: " + (t2 - t1));
         while (!levelItemsets.isEmpty() && !levelItemsets.get(0).isEmpty()) {
-            candidateItemsetsCount += levelItemsets.size();
-            System.err.println("\nLEVEL: " + currLevel);
-            //System.out.println(freqItemsetsCount);
+            candidateItemset += levelItemsets.size();
+            System.out.println("\nLEVEL: " + currLevel);
+            //System.out.println(countitemsets);
             //System.out.println("Level itemsets on ENTRY: " + levelItemsets);
             //System.out.println("ENTERED NEW LEVEL");
             t1 = System.currentTimeMillis();
             levelItemsets = processItemsets(levelItemsets);
             t2 = System.currentTimeMillis();
             //System.out.println("Level itemsets on PRUNING: " + levelItemsets);
-            System.err.println("Processing Done, Time: " + (t2 - t1));
+            System.out.println("Processing Done, Time: " + (t2 - t1));
             time += t2 - t1;
+
+            t1 = System.currentTimeMillis();
+            for (List<Integer> itemset : levelItemsets) {
+                Collections.sort(itemset);
+            }
+            t2 = System.currentTimeMillis();
+            System.out.println("Itemsets PreSort, Time: " + (t2 - t1));
 
             t1 = System.currentTimeMillis();
             levelItemsets = getSubsetItemsets(levelItemsets);
             t2 = System.currentTimeMillis();
-            System.err.println("Subset Generation, Time: " + (t2 - t1));
-
+            System.out.println("Subset Generation, Time: " + (t2 - t1));
+            
+            t1 = System.currentTimeMillis();
+            for (List<Integer> itemset : levelItemsets) {
+                Collections.sort(itemset, new Comparator<Integer>() {
+                    @Override
+                    public int compare(Integer item1, Integer item2) {
+                        // compare the frequency
+                        int compare = mapSupport.get(item2) - mapSupport.get(item1);
+                        // if the same frequency, we check the lexical ordering!
+                        if (compare == 0) {
+                            return (item1 - item2);
+                        }
+                        // otherwise, just use the frequency
+                        return compare;
+                    }
+                });
+            }
+            t2 = System.currentTimeMillis();
+            System.out.println("Itemsets PostSort, Time: " + (t2 - t1));
+            //System.out.println("Level itemsets on EXIT: " + levelItemsets);
             ++currLevel;
         }
-
+        // writer.close();
         // summarizing result
-        System.err.println("\nTime in support calculation:" + time);
-        System.err.println("Total candidates " + candidateItemsetsCount);
-        System.err.println("Total " + freqItemsetsCount + " frequent ORed Itemsets found.");
-        System.err.println("Total " + closedItemsetsCount + " frequent ORed CLOSED Itemsets found, total unique TidSets = " + tidsetTable.size());
-        
-        /*Iterator closedItemsets = tidsetTable.entrySet().iterator();
-        while (closedItemsets.hasNext()) {
-            Map.Entry pair = (Map.Entry) closedItemsets.next();
-            System.out.println(pair.getKey()+" => " + pair.getValue());
-            closedItemsets.remove(); // avoids a ConcurrentModificationException
-        }*/
+        System.out.println("\nTime in support calculation:" + time);
+        System.out.println("Total candidates " + candidateItemset);
+        System.out.println("Total " + countitemsets + " frequent ORed Itemsets found.");
+    }
+
+    /**
+     * Generate actual subset by index sequence
+     *
+     * @param input
+     * @param subset
+     * @return
+     */
+    public List<Integer> getSubset(List<Integer> input, int[] subset) {
+        List<Integer> result = new ArrayList<>();
+        for (int i = 0; i < subset.length; i++) {
+            result.add(input.get(subset[i]));
+        }
+        return result;
     }
 
     private boolean checkSeq(List<Integer> itemset, int k) {
         while (k > 0) {
             if (itemset.get(k) - itemset.get(k - 1) == 1) {
-                --k;
+                k -= 1;
             } else {
                 return false;
             }
         }
 
-        return true;//k == 0;
+        return k == 0;
     }
+
 
     /**
      * Geneates all subset itemsets of the given itemset
@@ -389,40 +442,17 @@ public class AlgoDIMBitSet {
 
         return subsets;
     }
-
-    public void processItemset(List<Integer> currItemset) {
-        BitSet currTidset = FindSupport(currItemset);
-        //System.out.println("--> " + currItemset.toString() + " val: " + val + " tnr: " + getDatabaseSize());
-
-        //if (val >= _minsupp) {
-        if (currTidset != null) {
-            freqItemsetsCount++;
-            checkClosed(currItemset, currTidset);
-            /*SortedSet<Integer> set = new TreeSet<>();
-                set.addAll(currItemset);
-                
-                test.Algorithm.frequent_list_set.add(set.toArray(new Integer[currItemset.size()]));
-                test.Algorithm.frequent_list.put(set.toString(), val);*/
-            //prints the freq ored itemsets
-            //System.out.println("--> " + currItemset.toString() + " val: " + val + " tnr: " + getDatabaseSize());
-
-        }
-
-    }
-
+    
     public List<List<Integer>> processItemsets(List<List<Integer>> itemsets) {
         List<List<Integer>> levelItemsets = new ArrayList<>();
-        //for (int i = 0; i < itemsets.size(); i++) {
-        for (List<Integer> currItemset : itemsets) {
-            //List<Integer> currItemset = itemsets.get(i);
-            //int val = FindSupport(currItemset);
-            BitSet currTidset = FindSupport(currItemset);
+        for (int i = 0; i < itemsets.size(); i++) {
+            List<Integer> currItemset = itemsets.get(i);
+
+            float val = FindSupport(currItemset);
             //System.out.println("--> " + currItemset.toString() + " val: " + val + " tnr: " + getDatabaseSize());
 
-            //if (val >= _minsupp) {
-            if (currTidset != null) {
-                freqItemsetsCount++;
-                checkClosed(currItemset, currTidset);
+            if (val >= minsup) {
+                countitemsets++;
                 /*SortedSet<Integer> set = new TreeSet<>();
                 set.addAll(currItemset);
                 
@@ -436,53 +466,46 @@ public class AlgoDIMBitSet {
         return levelItemsets;
     }
 
-    void checkClosed(List<Integer> list, BitSet temp) {
-        //String hC = temp.toString();//Total 427054 frequent ORed CLOSED Itemsets found, total unique TidSets = 255239:NO-COLLISION
-        int hC = temp.hashCode();   //Total 426994 frequent ORed CLOSED Itemsets found, total unique TidSets = 246577:COLLISION
-        //System.out.println(hC);
-        boolean keyFlag = tidsetTable.containsKey(hC);
-
-        if (keyFlag) {
-            MutablePair<Integer, List<String>> pair = tidsetTable.get(hC);
-            //System.out.println(">> OldPair - > "+pair+ " CurrList: "+ listInString);
-            if (list.size() == pair.left) {
-                //System.out.println(">>HERE");
-                closedItemsetsCount++;
-                pair.right.add(list.toString());
-            }
-        } else {
-            List<String> itemsetList = new ArrayList<>();
-            itemsetList.add(list.toString());
-            closedItemsetsCount++;
-            MutablePair<Integer, List<String>> pair = new MutablePair<>(list.size(), itemsetList);
-            tidsetTable.put(hC, pair);
-        }
-    }
-
     /**
      *
      * @param list candidate itemset
      * @return support of itemset
      */
-    private BitSet FindSupport(List<Integer> list) {
-        BitSet temp = new BitSet(databaseSize);//cloner.deepClone(dT.get(0));
+    private float FindSupport(List<Integer> list) {
+        long sum = 0;
+        
         for (int k = 0; k < list.size(); k++) {
-            temp.or(dT.get(list.get(k)));
-            //System.out.println(list+" -> "+ temp.toString()+", k:"+k+"-> "+dT.get(k));
+            
+            // find the first/head node of the header list corresponding to item k
+            FPNode X_node = tree.mapItemNodes.get(list.get(k));
+            while (X_node != null) {
+                int temp = Check_path(list, k, X_node);
+                if (temp == 0) {
+                    sum = sum + X_node.counter;
+                }
+                X_node = X_node.nodeLink;
+            }
         }
+        return ((float) sum / getDatabaseSize());
+    }
 
-        /*List<Integer> indexes = new ArrayList<>();
-        for (int i = temp.nextSetBit(0); i != -1; i = temp.nextSetBit(i + 1)) {
-            indexes.add(i);
+    /**
+     * @param list candidate itemset
+     * @param i index
+     * @param X_node FP-tree node
+     * @param tree FP-tree
+     * @return 1 if exist otherwise 0
+     */
+    private int Check_path(List<Integer> list, int indexOfItem, FPNode X_node) {
+        int result = 0;
+        for (int k = 0; k < indexOfItem; k++) {
+            if (X_node.bitMap.get(list.get(k))) {
+                //System.out.println("Item "+ list.get(k) + " is parent of "+ X_node.nodeID);
+                result = 1;
+                break;
+            }
         }
-        System.out.println(list+" -> "+indexes);*/
-        //return ((float) indexes.size() / getDatabaseSize());
-        //System.out.println(list + " -> " + temp.toString() + "," + temp.cardinality());
-        //return temp.cardinality();
-        if (temp.cardinality() >= _minsupp) {
-            return temp;
-        }
-        return null;
+        return result;
     }
 
     /**
@@ -493,4 +516,5 @@ public class AlgoDIMBitSet {
     public int getDatabaseSize() {
         return databaseSize;
     }
+
 }
