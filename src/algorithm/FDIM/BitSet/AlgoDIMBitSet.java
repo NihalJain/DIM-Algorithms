@@ -10,7 +10,6 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -205,7 +204,7 @@ public class AlgoDIMBitSet {
             //transactionCount++;
             databaseSize++;
         }
-        System.out.println(mapSupport);
+        //System.out.println(mapSupport);
         // close the input file
         reader.close();
     }
@@ -227,7 +226,7 @@ public class AlgoDIMBitSet {
             if (mapSupport.get(intKeys[i]) >= _minsupp) {
                 list.add(intKeys[i]);
             } else {
-                System.out.println("Pruned item "+intKeys[i]+" due to single item infrequency.");
+                //System.out.println("Pruned "+intKeys[i]+"single item infrequency.");
                 pruned_singles++;
             }
         }
@@ -280,6 +279,7 @@ public class AlgoDIMBitSet {
         // summarizing result
         System.out.println("\nTime in support calculation:" + time);
         System.out.println("Total candidates " + candidateItemsetsCount);
+        System.out.println("Total " + pruned_singles + "singles pruned due to infrequency");
         System.out.println("Total " + freqItemsetsCount + " frequent ORed Itemsets found.");
         System.out.println("Total " + closedItemsetsCount + " frequent ORed CLOSED Itemsets found, total unique TidSets = " + tidsetTable.size());
         

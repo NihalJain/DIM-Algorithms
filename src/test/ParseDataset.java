@@ -39,7 +39,7 @@ public class ParseDataset {
         try {
             reader = new BufferedReader(new FileReader(input));
         } catch (Exception e) {
-            System.err.println("error: Unable to open input file");
+            System.out.println("error: Unable to open input file");
             System.exit(-1); // exit
         }
 
@@ -56,12 +56,12 @@ public class ParseDataset {
         }
         String out = (String) input.subSequence(0, i);
         out += "_int.txt";
-        System.err.println("Mapped Input file: " + out);
+        //System.err.println("Mapped Input file: " + out);
         try {
             writer = new PrintWriter(out, "UTF-8");
 
         } catch (FileNotFoundException | UnsupportedEncodingException e) {
-            System.err.println("error: Unable to open item to integer ID mapping file");
+            System.out.println("error: Unable to open item to integer ID mapping file");
             System.exit(-1); // exit
         }
         String line;
@@ -100,7 +100,7 @@ public class ParseDataset {
                 }
             }
         } catch (Exception e) {
-            System.err.println("error: Unable to read transaction from input file");
+            System.out.println("error: Unable to read transaction from input file");
         }
         try {
             reader.close();
@@ -109,7 +109,7 @@ public class ParseDataset {
             System.out.println("error: Unable to close input or output file");
         }
 	
-         System.err.println(mapitem);
+         //System.out.println(mapitem);
 
         // returning new input path
         return out;
