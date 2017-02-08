@@ -55,11 +55,11 @@ public class Algorithm {
         // ------------Input file --------------
         //System.out.print("Enter Input file path : ");
         try {
-            input = args[1]; //jar mode
-            //input = fileToPath(args[1]); //use this for IDE(testing)
+            //input = args[1]; //jar mode
+            input = fileToPath(args[1]); //use this for IDE(testing)
             //System.out.println(input);
         } catch (Exception e) {
-            System.err.println("error: Input file not found.");
+            System.out.println("error: Input file not found.");
             System.exit(-1);
         }
 
@@ -67,7 +67,7 @@ public class Algorithm {
         try {
             whichAlgo = Integer.parseInt(args[2]);
         } catch (Exception e) {
-            System.err.println("error: No algorithm specified.");
+            System.out.println("error: No algorithm specified.");
             System.exit(-1);
         }
 
@@ -76,21 +76,21 @@ public class Algorithm {
         try {
             minsupp = Float.valueOf(args[3]);
         } catch (Exception e) {
-            System.err.println("error: Invalid input for minimum Support.");
+            System.out.println("error: Invalid input for minimum Support.");
             System.exit(-1);
         }
 
         /*try {
             maxsupp = Float.valueOf(args[3]);
         } catch (Exception e) {
-            System.err.println("error: Invalid input for minimum Support.");
+            System.out.println("error: Invalid input for minimum Support.");
             System.exit(-1);
         }*/
         //assigns maximum length of the pattern to search forto run
         try {
             maxitem = Integer.parseInt(args[4]);
         } catch (Exception e) {
-            System.err.println("error: No maxitem specified.");
+            System.out.println("error: No maxitem specified.");
             System.exit(-1);
         }
 
@@ -203,8 +203,8 @@ public class Algorithm {
         long lEndTime = System.currentTimeMillis();
 
         // summarizing results
-        System.err.println("----------------------------------------------------------------------");
-        System.err.println("DATABASE SIZE " + databaseSize + " Total items : " + totalSingles);
+        System.out.println("----------------------------------------------------------------------");
+        System.out.println("DATABASE SIZE " + databaseSize + " Total items : " + totalSingles);
         System.out.println("Elapsed milliseconds (Preprocessing): " + (parseEnd - parseStart));
         System.out.println("Elapsed milliseconds ( FPTree + ORed Itemsets): " + (lEndTime - lStartTime));
         System.out.println("Elapsed milliseconds (Total time => Preprocessing + ORed itemsets): " + (lEndTime - parseStart));
@@ -215,13 +215,13 @@ public class Algorithm {
             Process p = Runtime.getRuntime().exec(" ps -C java -O rss");
             BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
             while ((s = br.readLine()) != null) {
-                System.err.println(s);
+                System.out.println(s);
             }
 
         } catch (Exception ex) {
-            System.err.println("unable to get memory Utilization.");
+            System.out.println("unable to get memory Utilization.");
         }
-        System.err.println("======================================================================\n\n");
+        System.out.println("======================================================================\n\n");
     }
 
     /**

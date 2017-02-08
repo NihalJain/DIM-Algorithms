@@ -69,7 +69,7 @@ public class AlgoDIMBitSet {
         scanDatabaseToDetermineFrequencyOfSingleItems(input);
         long t2 = System.currentTimeMillis();
         // Displaying frequency counting time
-        System.err.println("Item Frequency counting time : " + (t2 - t1) + " ms");
+        System.out.println("Item Frequency counting time : " + (t2 - t1) + " ms");
         t1 = System.currentTimeMillis();
         // assigning total unique items
         total_singles = (int) mapSupport.size();
@@ -118,7 +118,7 @@ public class AlgoDIMBitSet {
         try {
             reader = new BufferedReader(new FileReader(input));
         } catch (Exception e) {
-            System.err.println("error: Unable to open input file");
+            System.out.println("error: Unable to open input file");
             System.exit(-1);
         }
         String line;
@@ -149,7 +149,7 @@ public class AlgoDIMBitSet {
         // close the input file
         reader.close();
         t2 = System.currentTimeMillis();
-        System.err.println("Tree build time : " + (t2 - t1) + "ms");
+        System.out.println("Tree build time : " + (t2 - t1) + "ms");
         t1 = System.currentTimeMillis();
         // calling FPOred function on TREE tree with minsupp.
         _minsupp = minsupp * databaseSize;
@@ -175,7 +175,7 @@ public class AlgoDIMBitSet {
         try {
             reader = new BufferedReader(new FileReader(input));
         } catch (Exception e) {
-            System.err.println("error: Unable to open input file");
+            System.out.println("error: Unable to open input file");
             System.exit(-1);
         }
         String line;
@@ -205,7 +205,7 @@ public class AlgoDIMBitSet {
             //transactionCount++;
             databaseSize++;
         }
-        System.err.println(mapSupport);
+        System.out.println(mapSupport);
         // close the input file
         reader.close();
     }
@@ -227,14 +227,14 @@ public class AlgoDIMBitSet {
             if (mapSupport.get(intKeys[i]) >= _minsupp) {
                 list.add(intKeys[i]);
             } else {
-                System.err.println("Pruned item "+intKeys[i]+" due to single item infrequency.");
+                System.out.println("Pruned item "+intKeys[i]+" due to single item infrequency.");
                 pruned_singles++;
             }
         }
         int remainingSingles = total_singles - pruned_singles;
         //System.out.println(remainingSingles);
         if (remainingSingles == 0) {
-            System.err.println("NO candidates satsify the min supp condition!");
+            System.out.println("NO candidates satsify the min supp condition!");
             return;
         } else if (remainingSingles < _maxitems) {
             _maxitems = remainingSingles;
@@ -255,10 +255,10 @@ public class AlgoDIMBitSet {
             levelItemsets = generateLevelOne(list, _maxitems - 1);
         }
         t2 = System.currentTimeMillis();
-        System.err.println("\nMiddle lattice generation, Time: " + (t2 - t1));
+        System.out.println("\nMiddle lattice generation, Time: " + (t2 - t1));
         while (!levelItemsets.isEmpty() && !levelItemsets.get(0).isEmpty()) {
             candidateItemsetsCount += levelItemsets.size();
-            System.err.println("\nLEVEL: " + currLevel);
+            System.out.println("\nLEVEL: " + currLevel);
             //System.out.println(freqItemsetsCount);
             //System.out.println("Level itemsets on ENTRY: " + levelItemsets);
             //System.out.println("ENTERED NEW LEVEL");
@@ -266,22 +266,22 @@ public class AlgoDIMBitSet {
             levelItemsets = processItemsets(levelItemsets);
             t2 = System.currentTimeMillis();
             //System.out.println("Level itemsets on PRUNING: " + levelItemsets);
-            System.err.println("Processing Done, Time: " + (t2 - t1));
+            System.out.println("Processing Done, Time: " + (t2 - t1));
             time += t2 - t1;
 
             t1 = System.currentTimeMillis();
             levelItemsets = getSubsetItemsets(levelItemsets);
             t2 = System.currentTimeMillis();
-            System.err.println("Subset Generation, Time: " + (t2 - t1));
+            System.out.println("Subset Generation, Time: " + (t2 - t1));
 
             ++currLevel;
         }
 
         // summarizing result
-        System.err.println("\nTime in support calculation:" + time);
-        System.err.println("Total candidates " + candidateItemsetsCount);
-        System.err.println("Total " + freqItemsetsCount + " frequent ORed Itemsets found.");
-        System.err.println("Total " + closedItemsetsCount + " frequent ORed CLOSED Itemsets found, total unique TidSets = " + tidsetTable.size());
+        System.out.println("\nTime in support calculation:" + time);
+        System.out.println("Total candidates " + candidateItemsetsCount);
+        System.out.println("Total " + freqItemsetsCount + " frequent ORed Itemsets found.");
+        System.out.println("Total " + closedItemsetsCount + " frequent ORed CLOSED Itemsets found, total unique TidSets = " + tidsetTable.size());
         
         /*Iterator closedItemsets = tidsetTable.entrySet().iterator();
         while (closedItemsets.hasNext()) {
@@ -419,10 +419,9 @@ public class AlgoDIMBitSet {
             BitSet currTidset = FindSupport(currItemset);
             //System.out.println("--> " + currItemset.toString() + " val: " + val + " tnr: " + getDatabaseSize());
 
-            //if (val >= _minsupp) {
             if (currTidset != null) {
                 freqItemsetsCount++;
-                checkClosed(currItemset, currTidset);
+                //checkClosed(currItemset, currTidset);
                 /*SortedSet<Integer> set = new TreeSet<>();
                 set.addAll(currItemset);
                 
