@@ -55,8 +55,8 @@ public class Algorithm {
         // ------------Input file --------------
         //System.out.print("Enter Input file path : ");
         try {
-            //input = args[1]; //jar mode
-            input = fileToPath(args[1]); //use this for IDE(testing)
+            input = args[1]; //jar mode
+            //input = fileToPath(args[1]); //use this for IDE(testing)
             //System.out.println(input);
         } catch (Exception e) {
             System.out.println("error: Input file not found.");

@@ -20,29 +20,26 @@ import java.util.StringTokenizer;
  */
 public class AlgoDIMBitSetBasedNoIIT {
     
-    /**
-     * number of transactions in the database
-     */
+    
+    // number of transactions in the database
     public static int databaseSize;
     // Hashmap for storing frequencies of each item in dataset
     final Map<Integer, Integer> mapSupport = new HashMap<>();
-    /**
-     * Number of items in dataset
-     */
+    // number of items in database
     public static int total_singles = 0;
     // all unique items present in dataset
     private Integer[] intKeys;
-    // total candidate itemsets
-    int candidateItemset = 0;
-    FPTree tree = null;
-    float minsup;
-    int maxitems, countitemsets = 0;
-    int countt = 0;
-    Integer preference[];
-    // used by dfs for support counting
-    private final int sumOfSupport = 0;
-    private int currLevel;
 
+    // total candidate itemsets
+    int candidateItemsetsCount = 0;
+    FPTree tree = null;
+    Integer preference[];
+    float _minsupp;
+    int _maxitems;
+    
+     int freqItemsetsCount = 0;
+    // current level under inspection
+    private int currLevel = 0;
     /**
      * Method to run the FP tree based ORed Itemset generation algorithm.
      *
@@ -52,7 +49,7 @@ public class AlgoDIMBitSetBasedNoIIT {
      * @throws IOException exception if error reading or writing files.
      * @throws FileNotFoundException exception if input file not found.
      */
-    public void runAlgorithm(String input, float minsupp, int maxitem) throws FileNotFoundException, IOException {
+    public void runAlgorithm(String input, float minsupp, int maxitems) throws FileNotFoundException, IOException {
 
         // reset the transaction count
         databaseSize = 0;
@@ -119,6 +116,7 @@ public class AlgoDIMBitSetBasedNoIIT {
         }
         String line;
         // for each line (transaction) until the end of the file
+        int tID = 1;
         while (((line = reader.readLine()) != null)) {
             // if the line is a comment, is empty or is a kind of metadata
             if (line.isEmpty() == true || line.charAt(0) == '#' || line.charAt(0) == '%' || line.charAt(0) == '@') {
@@ -152,8 +150,8 @@ public class AlgoDIMBitSetBasedNoIIT {
 
             // add the sorted transaction to the fptree.
             tree.addTransaction(transaction);
-            // increase the transaction count
-            databaseSize++;
+           // increase the transaction count
+            tID++;
         }
         // close the input file
         reader.close();
@@ -161,13 +159,13 @@ public class AlgoDIMBitSetBasedNoIIT {
         System.out.println("Tree build time : " + (t2 - t1) + "ms");
         t1 = System.currentTimeMillis();
         // calling FPOred function on TREE tree with minsupp.
-        minsup = minsupp;
-        maxitems = maxitem;
+        _minsupp = minsupp * databaseSize;
+        _maxitems = maxitems;
         FPORed();
         t2 = System.currentTimeMillis();
 
         // itemset finding time
-        System.out.println("TOTAL Itemset Finding Time : " + (t2 - t1) + "ms");
+        //System.out.println("TOTAL Itemset Finding Time : " + (t2 - t1) + "ms");
     }
 
     /**
@@ -212,6 +210,7 @@ public class AlgoDIMBitSetBasedNoIIT {
             }
             // increase the transaction count
             //transactionCount++;
+            databaseSize++;
         }
         //System.out.println(mapSupport);
         // close the input file
@@ -229,8 +228,23 @@ public class AlgoDIMBitSetBasedNoIIT {
         List<Integer> list = new ArrayList<>();
         //List<Integer> origList = new ArrayList<>();
         preference = new Integer[total_singles];
+        int pruned_singles = 0;
         for (Integer i = 0; i < intKeys.length; i++) {
-            list.add(intKeys[i]);
+            //System.out.println(mapSupport.get(intKeys[i]));
+            if (mapSupport.get(intKeys[i]) >= _minsupp) {
+                list.add(intKeys[i]);
+            } else {
+                //System.out.println("Pruned "+intKeys[i]+"single item infrequency.");
+                pruned_singles++;
+            }
+        }
+        int remainingSingles = total_singles - pruned_singles;
+        //System.out.println(remainingSingles);
+        if (remainingSingles == 0) {
+            System.out.println("NO candidates satsify the min supp condition!");
+            return;
+        } else if (remainingSingles < _maxitems) {
+            _maxitems = remainingSingles;
         }
 
         /*Cloner cloner = new Cloner();
@@ -249,7 +263,7 @@ public class AlgoDIMBitSetBasedNoIIT {
                 return compare;
             }
         });
-        for (int i = 0; i < intKeys.length; i++) {
+        for (int i = 0; i < list.size(); i++) {
             preference[list.get(i)] = i;
         }
 
@@ -261,22 +275,24 @@ public class AlgoDIMBitSetBasedNoIIT {
         
         //ICombinatoricsVector<Integer> initialVector = Factory.createVector(list);
         currLevel = 0;
-        if (maxitems < total_singles) {
-            levelItemsets = generateLevelOne(list, maxitems);
+        if (_maxitems < total_singles) {
+            levelItemsets = generateLevelOne(list, _maxitems);
             //levelItemsets =  Generator.combination(list).simple(maxitems).stream().collect(Collectors.<List<Integer>>toList());
         } else {
-            countitemsets++;
+            System.out.println("\nLEVEL: " + currLevel);
+            currLevel++;
             //SortedSet<Integer> set = new TreeSet<>();
             //set.addAll(list);
             //test.Algorithm.frequent_list_set.add(set.toArray(new Integer[list.size()]));
             //test.Algorithm.frequent_list.put(set.toString(), (float)1.0);
-            levelItemsets = generateLevelOne(list, maxitems - 1);
+            processItemset(list);
+            levelItemsets = generateLevelOne(list, _maxitems - 1);
             //levelItemsets = (List<List<Integer>>) Generator.combination(list).simple(maxitems-1).stream().collect(Collectors.<List<Integer>>toList());;
         }
         t2 = System.currentTimeMillis();
         System.out.println("\nMiddle lattice generation, Time: " + (t2 - t1));
         while (!levelItemsets.isEmpty() && !levelItemsets.get(0).isEmpty()) {
-            candidateItemset += levelItemsets.size();
+            candidateItemsetsCount += levelItemsets.size();
             System.out.println("\nLEVEL: " + currLevel);
             //System.out.println(countitemsets);
             //System.out.println("Level itemsets on ENTRY: " + levelItemsets);
@@ -288,12 +304,12 @@ public class AlgoDIMBitSetBasedNoIIT {
             System.out.println("Processing Done, Time: " + (t2 - t1));
             time += t2 - t1;
 
-            t1 = System.currentTimeMillis();
+            /*t1 = System.currentTimeMillis();
             for (List<Integer> itemset : levelItemsets) {
                 Collections.sort(itemset);
             }
             t2 = System.currentTimeMillis();
-            System.out.println("Itemsets PreSort, Time: " + (t2 - t1));
+            System.out.println("Itemsets PreSort, Time: " + (t2 - t1));*/
 
             t1 = System.currentTimeMillis();
             levelItemsets = getSubsetItemsets(levelItemsets);
@@ -324,23 +340,9 @@ public class AlgoDIMBitSetBasedNoIIT {
         // writer.close();
         // summarizing result
         System.out.println("\nTime in support calculation:" + time);
-        System.out.println("Total candidates " + candidateItemset);
-        System.out.println("Total " + countitemsets + " frequent ORed Itemsets found.");
-    }
-
-    /**
-     * Generate actual subset by index sequence
-     *
-     * @param input
-     * @param subset
-     * @return
-     */
-    public List<Integer> getSubset(List<Integer> input, int[] subset) {
-        List<Integer> result = new ArrayList<>();
-        for (int i = 0; i < subset.length; i++) {
-            result.add(input.get(subset[i]));
-        }
-        return result;
+        System.out.println("Total candidates " + candidateItemsetsCount); 
+        System.out.println("Total " + pruned_singles + " singles pruned due to infrequency");
+        System.out.println("Total " + freqItemsetsCount + " frequent ORed Itemsets found.");
     }
 
     private boolean checkSeq(List<Integer> itemset, int k) {
@@ -352,7 +354,7 @@ public class AlgoDIMBitSetBasedNoIIT {
             }
         }
 
-        return k == 0;
+        return true;//k == 0;
     }
 
 
@@ -395,6 +397,7 @@ public class AlgoDIMBitSetBasedNoIIT {
         return subsetItemsets;
     }
 
+    
     /**
      * Enumerate from middle non-recursively: VERY FAST
      *
@@ -442,17 +445,36 @@ public class AlgoDIMBitSetBasedNoIIT {
 
         return subsets;
     }
+    public void processItemset(List<Integer> currItemset) {
+        float val = FindSupport(currItemset);
+        //System.out.println("--> " + currItemset.toString() + " val: " + val + " tnr: " + getDatabaseSize());
+
+        if (val >= _minsupp) {
+            freqItemsetsCount++;
+            //checkClosed(currItemset, currTidset);
+            /*SortedSet<Integer> set = new TreeSet<>();
+                set.addAll(currItemset);
+                
+                test.Algorithm.frequent_list_set.add(set.toArray(new Integer[currItemset.size()]));
+                test.Algorithm.frequent_list.put(set.toString(), val);*/
+            //prints the freq ored itemsets
+            //System.out.println("--> " + currItemset.toString() + " val: " + val + " tnr: " + getDatabaseSize());
+
+        }
+
+    }
     
     public List<List<Integer>> processItemsets(List<List<Integer>> itemsets) {
         List<List<Integer>> levelItemsets = new ArrayList<>();
-        for (int i = 0; i < itemsets.size(); i++) {
-            List<Integer> currItemset = itemsets.get(i);
+        //for (int i = 0; i < itemsets.size(); i++) {
+        for (List<Integer> currItemset : itemsets) {
+            //List<Integer> currItemset = itemsets.get(i);
 
             float val = FindSupport(currItemset);
             //System.out.println("--> " + currItemset.toString() + " val: " + val + " tnr: " + getDatabaseSize());
 
-            if (val >= minsup) {
-                countitemsets++;
+            if (val >= _minsupp) {
+               freqItemsetsCount++;
                 /*SortedSet<Integer> set = new TreeSet<>();
                 set.addAll(currItemset);
                 

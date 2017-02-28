@@ -1,6 +1,6 @@
 package algorithm.FDIM.BitSet;
 
-import com.rits.cloning.Cloner;
+//import com.rits.cloning.Cloner;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -23,7 +23,7 @@ import org.apache.commons.lang3.tuple.MutablePair;
  */
 public class AlgoDIMBitSet {
 
-    Cloner cloner = new Cloner();
+    //Cloner cloner = new Cloner();
 
     // number of transactions in the database
     public static int databaseSize;
@@ -279,9 +279,9 @@ public class AlgoDIMBitSet {
         // summarizing result
         System.out.println("\nTime in support calculation:" + time);
         System.out.println("Total candidates " + candidateItemsetsCount);
-        System.out.println("Total " + pruned_singles + "singles pruned due to infrequency");
+        System.out.println("Total " + pruned_singles + " singles pruned due to infrequency");
         System.out.println("Total " + freqItemsetsCount + " frequent ORed Itemsets found.");
-        System.out.println("Total " + closedItemsetsCount + " frequent ORed CLOSED Itemsets found, total unique TidSets = " + tidsetTable.size());
+        //System.out.println("Total " + closedItemsetsCount + " frequent ORed CLOSED Itemsets found, total unique TidSets = " + tidsetTable.size());
         
         /*Iterator closedItemsets = tidsetTable.entrySet().iterator();
         while (closedItemsets.hasNext()) {
@@ -397,7 +397,7 @@ public class AlgoDIMBitSet {
         //if (val >= _minsupp) {
         if (currTidset != null) {
             freqItemsetsCount++;
-            checkClosed(currItemset, currTidset);
+            //checkClosed(currItemset, currTidset);
             /*SortedSet<Integer> set = new TreeSet<>();
                 set.addAll(currItemset);
                 
@@ -435,7 +435,7 @@ public class AlgoDIMBitSet {
         return levelItemsets;
     }
 
-    void checkClosed(List<Integer> list, BitSet temp) {
+    /*void checkClosed(List<Integer> list, BitSet temp) {
         //String hC = temp.toString();//Total 427054 frequent ORed CLOSED Itemsets found, total unique TidSets = 255239:NO-COLLISION
         int hC = temp.hashCode();   //Total 426994 frequent ORed CLOSED Itemsets found, total unique TidSets = 246577:COLLISION
         //System.out.println(hC);
@@ -456,7 +456,7 @@ public class AlgoDIMBitSet {
             MutablePair<Integer, List<String>> pair = new MutablePair<>(list.size(), itemsetList);
             tidsetTable.put(hC, pair);
         }
-    }
+    }*/
 
     /**
      *
