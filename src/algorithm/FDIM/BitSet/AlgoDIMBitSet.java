@@ -10,6 +10,7 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -24,7 +25,6 @@ import org.apache.commons.lang3.tuple.MutablePair;
 public class AlgoDIMBitSet {
 
     //Cloner cloner = new Cloner();
-
     // number of transactions in the database
     public static int databaseSize;
     // Hashmap for storing frequencies of each item in dataset
@@ -46,8 +46,10 @@ public class AlgoDIMBitSet {
     private int currLevel = 0;
 
     int closedItemsetsCount = 0;
+
     //HashMap<String, MutablePair<Integer, List<String>>> tidsetTable = new HashMap<>();
     HashMap<Integer, MutablePair<Integer, List<String>>> tidsetTable = new HashMap<>();
+    HashMap<Integer, MutablePair<Integer, List<String>>> currTidsetTable = new HashMap<>();
 
     /**
      * Method to run the FP tree based ORed Itemset generation algorithm.
@@ -220,7 +222,9 @@ public class AlgoDIMBitSet {
         List<Integer> list = new ArrayList<>();
         //List<Integer> origList = new ArrayList<>();
         //preference = new Integer[total_singles];
-        int pruned_singles = 0;
+        //BUG: IF only frequent items are kept, 
+        //then all generateed itemsets are always frequent
+        /*int pruned_singles = 0;
         for (Integer i = 0; i < intKeys.length; i++) {
             //System.out.println(mapSupport.get(intKeys[i]));
             if (mapSupport.get(intKeys[i]) >= _minsupp) {
@@ -237,7 +241,20 @@ public class AlgoDIMBitSet {
             return;
         } else if (remainingSingles < _maxitems) {
             _maxitems = remainingSingles;
+        }*/
+
+        for (Integer i = 0; i < intKeys.length; i++) {
+            //System.out.println(mapSupport.get(intKeys[i]));
+            list.add(intKeys[i]);
         }
+       
+        if (total_singles == 0) {
+            System.out.println("NO candidates satsify the min supp condition!");
+            return;
+        } else if (total_singles< _maxitems) {
+            _maxitems = total_singles;
+        }
+
 
         long time = 0;
         long t1, t2;
@@ -248,7 +265,8 @@ public class AlgoDIMBitSet {
 
             levelItemsets = generateLevelOne(list, _maxitems);
         } else {
-            System.out.println("\nLEVEL: " + currLevel);
+            System.out.println("\nLEVEL: " + currLevel+"\nCurrent itemset size: "+list.size()+"\nLevel candidate itemsets on ENTRY: " + 1);            
+            candidateItemsetsCount++;
             currLevel++;
             processItemset(list);
             levelItemsets = generateLevelOne(list, _maxitems - 1);
@@ -257,15 +275,12 @@ public class AlgoDIMBitSet {
         System.out.println("\nMiddle lattice generation, Time: " + (t2 - t1));
         while (!levelItemsets.isEmpty() && !levelItemsets.get(0).isEmpty()) {
             candidateItemsetsCount += levelItemsets.size();
-            System.out.println("\nLEVEL: " + currLevel);
-            //System.out.println(freqItemsetsCount);
-            //System.out.println("Level itemsets on ENTRY: " + levelItemsets);
+            System.out.println("\nLEVEL: " + currLevel+"\nCurrent itemset size: "+levelItemsets.get(0).size()+"\nLevel candidate itemsets on ENTRY: " + levelItemsets.size());
             //System.out.println("ENTERED NEW LEVEL");
             t1 = System.currentTimeMillis();
             levelItemsets = processItemsets(levelItemsets);
             t2 = System.currentTimeMillis();
-            //System.out.println("Level itemsets on PRUNING: " + levelItemsets);
-            System.out.println("Processing Done, Time: " + (t2 - t1));
+            System.out.println("Level frequent itemsets: " + levelItemsets.size()+"\nProcessing Done, Time: " + (t2 - t1));
             time += t2 - t1;
 
             t1 = System.currentTimeMillis();
@@ -273,20 +288,25 @@ public class AlgoDIMBitSet {
             t2 = System.currentTimeMillis();
             System.out.println("Subset Generation, Time: " + (t2 - t1));
 
+            //for closedCheckOptimized
+            //System.out.println("B:" + tidsetTable);
+            tidsetTable.putAll(currTidsetTable);
+            //System.out.println("A:" + tidsetTable);
+            currTidsetTable = new HashMap<>();
             ++currLevel;
         }
 
         // summarizing result
         System.out.println("\nTime in support calculation:" + time);
         System.out.println("Total candidates " + candidateItemsetsCount);
-        System.out.println("Total " + pruned_singles + " singles pruned due to infrequency");
+        //System.out.println("Total " + pruned_singles + " singles pruned due to infrequency");
         System.out.println("Total " + freqItemsetsCount + " frequent ORed Itemsets found.");
-        //System.out.println("Total " + closedItemsetsCount + " frequent ORed CLOSED Itemsets found, total unique TidSets = " + tidsetTable.size());
-        
+        System.out.println("Total " + closedItemsetsCount + " frequent ORed CLOSED Itemsets found, total unique TidSets = " + tidsetTable.size());
+
         /*Iterator closedItemsets = tidsetTable.entrySet().iterator();
         while (closedItemsets.hasNext()) {
             Map.Entry pair = (Map.Entry) closedItemsets.next();
-            System.out.println(pair.getKey()+" => " + pair.getValue());
+            System.out.println(pair.getKey() + " => " + pair.getValue());
             closedItemsets.remove(); // avoids a ConcurrentModificationException
         }*/
     }
@@ -352,7 +372,7 @@ public class AlgoDIMBitSet {
     public List<List<Integer>> generateLevelOne(List<Integer> input, int maxitems) {
         List<List<Integer>> subsets = new ArrayList<>();
 
-        //int[] s = new int[maxitems];                  // here we'll keep indices 
+        //int[] s = new int[maxitems];                  // here we'll keep indices
         List<Integer> s = new ArrayList<>();
         for (int i = 0; i < maxitems; i++) {
             s.add(i);
@@ -397,10 +417,10 @@ public class AlgoDIMBitSet {
         //if (val >= _minsupp) {
         if (currTidset != null) {
             freqItemsetsCount++;
-            //checkClosed(currItemset, currTidset);
+            checkClosed(currItemset, currTidset);
             /*SortedSet<Integer> set = new TreeSet<>();
                 set.addAll(currItemset);
-                
+
                 test.Algorithm.frequent_list_set.add(set.toArray(new Integer[currItemset.size()]));
                 test.Algorithm.frequent_list.put(set.toString(), val);*/
             //prints the freq ored itemsets
@@ -421,10 +441,10 @@ public class AlgoDIMBitSet {
 
             if (currTidset != null) {
                 freqItemsetsCount++;
-                //checkClosed(currItemset, currTidset);
+                checkClosed(currItemset, currTidset);
                 /*SortedSet<Integer> set = new TreeSet<>();
                 set.addAll(currItemset);
-                
+
                 test.Algorithm.frequent_list_set.add(set.toArray(new Integer[currItemset.size()]));
                 test.Algorithm.frequent_list.put(set.toString(), val);*/
                 //prints the freq ored itemsets
@@ -438,14 +458,15 @@ public class AlgoDIMBitSet {
     /*void checkClosed(List<Integer> list, BitSet temp) {
         //String hC = temp.toString();//Total 427054 frequent ORed CLOSED Itemsets found, total unique TidSets = 255239:NO-COLLISION
         int hC = temp.hashCode();   //Total 426994 frequent ORed CLOSED Itemsets found, total unique TidSets = 246577:COLLISION
-        //System.out.println(hC);
+        System.out.println("hC: "+hC+" and bitset: "+temp);
         boolean keyFlag = tidsetTable.containsKey(hC);
 
         if (keyFlag) {
+            System.out.println(">>HERE");
             MutablePair<Integer, List<String>> pair = tidsetTable.get(hC);
-            //System.out.println(">> OldPair - > "+pair+ " CurrList: "+ listInString);
+            System.out.println(">> OldPair - > "+pair+ " CurrList: "+ list);
             if (list.size() == pair.left) {
-                //System.out.println(">>HERE");
+                System.out.println(">>HERE");
                 closedItemsetsCount++;
                 pair.right.add(list.toString());
             }
@@ -454,9 +475,39 @@ public class AlgoDIMBitSet {
             itemsetList.add(list.toString());
             closedItemsetsCount++;
             MutablePair<Integer, List<String>> pair = new MutablePair<>(list.size(), itemsetList);
+            System.out.println("ADDED CFI "+hC+":"+pair+"\n");
             tidsetTable.put(hC, pair);
         }
     }*/
+    void checkClosed(List<Integer> list, BitSet temp) {
+        //String hC = temp.toString();//Total 427054 frequent ORed CLOSED Itemsets found, total unique TidSets = 255239:NO-COLLISION
+        int hC = temp.hashCode();   //Total 426994 frequent ORed CLOSED Itemsets found, total unique TidSets = 246577:COLLISION
+        // System.out.println("hC: " + hC + " and bitset: " + temp);
+        boolean globalFlag = tidsetTable.containsKey(hC);
+
+        if (!globalFlag) {
+            boolean localFlag = currTidsetTable.containsKey(hC);
+
+            if (localFlag) {
+                //System.out.println(">>HERE");
+                MutablePair<Integer, List<String>> pair = currTidsetTable.get(hC);
+                //System.out.println(">> OldPair - > " + pair + " CurrList: " + list);
+                if (list.size() == pair.left) {
+                    //System.out.println(">>HERE");
+                    closedItemsetsCount++;
+                    pair.right.add(list.toString());
+                }
+            } else {
+
+                List<String> itemsetList = new ArrayList<>();
+                itemsetList.add(list.toString());
+                closedItemsetsCount++;
+                MutablePair<Integer, List<String>> pair = new MutablePair<>(list.size(), itemsetList);
+                //System.out.println("ADDED CFI " + hC + ":" + pair + "\n");
+                currTidsetTable.put(hC, pair);
+            }
+        }
+    }
 
     /**
      *

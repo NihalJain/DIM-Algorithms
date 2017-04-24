@@ -1,7 +1,6 @@
-package algorithm.FDIM.BFSBased;
+package algorithm.FDIM.DFS;
 
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.List;
 
 /**
@@ -10,18 +9,18 @@ import java.util.List;
  * @author nihal jain
  * @version 1.0
  */
-public class IITNode {
-    
-    //int nodeID = -1;
+public class FPNode {
+
+    int nodeID = -1;
     int itemID = -1; // item id
-    //int counter = 1; // frequency counter
+    int counter = 1; // frequency counter
     // the parent node of that node or null if it is the root
-    IITNode parent = null;
+    FPNode parent = null;
     // the child nodes of that node
-    List<IITNode> childs = new ArrayList<>();
-    IITNode nodeLink = null; // link to next node with the same item id (for the header table).
+    List<FPNode> childs = new ArrayList<>();
+    FPNode nodeLink = null; // link to next node with the same item id (for the header table).
     List<Integer> branches = new ArrayList<>();
-    
+
     /**
      * Return the immediate child of this node having a given ID. If there is no
      * such child, return null;
@@ -29,9 +28,9 @@ public class IITNode {
      * @param id of the given item
      * @return immediate child having given item ID
      */
-    public IITNode getChildWithID(int id) {
+    public FPNode getChildWithID(int id) {
         // for each child node
-        for (IITNode child : childs) {
+        for (FPNode child : childs) {
             // if the id is the one that we are looking for
             if (child.itemID == id) {
                 // return that node

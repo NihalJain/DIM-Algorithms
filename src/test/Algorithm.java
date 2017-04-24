@@ -10,6 +10,7 @@ import java.util.ArrayList;
 
 import algorithm.FDIM.BitSetBased.AlgoDIMBitSetBased;
 import algorithm.FDIM.BitSetBasedNoIIT.AlgoDIMBitSetBasedNoIIT;
+import algorithm.FDIM.DFS.AlgoDIMDFS;
 import algorithm.FDIM.DFSBased.AlgoDIMDFSBased;
 import algorithm.FDIM.MFPImproved.AlgoDIMMFPImproved;
 import java.io.BufferedReader;
@@ -56,8 +57,8 @@ public class Algorithm {
         //System.out.print("Enter Input file path : ");
         try {
             input = args[1]; //jar mode
-            //input = fileToPath(args[1]); //use this for IDE(testing)
             //System.out.println(input);
+            input = fileToPath(args[1]); //use this for IDE(testing)
         } catch (Exception e) {
             System.out.println("error: Input file not found.");
             System.exit(-1);
@@ -119,6 +120,9 @@ public class Algorithm {
             case 5:
                 System.out.println("                       DIM BitSet Based with no IIT ALGORITHM");
                 break;
+            case 6:
+                System.out.println("                       DIM DFS(bitset) ALGORITHM");
+                break;
             default:
                 System.out.println("                        DIM MFP-Improved");
                 break;
@@ -171,6 +175,13 @@ public class Algorithm {
                 dimAlgo.runAlgorithm(input, minsupp, maxitem);
                 databaseSize = dimAlgo.getDatabaseSize();
                 totalSingles = AlgoDIMBitSetBasedNoIIT.total_singles;
+                break;
+            }
+            case 6: {
+                AlgoDIMDFS dimAlgo = new AlgoDIMDFS();
+                dimAlgo.runAlgorithm(input, minsupp, maxitem);
+                databaseSize = dimAlgo.getDatabaseSize();
+                totalSingles = AlgoDIMDFS.total_singles;
                 break;
             }
             /*case 4: {
