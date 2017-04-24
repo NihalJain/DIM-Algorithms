@@ -1,6 +1,5 @@
 package algorithm.FDIM.DFSBased;
 
-import com.rits.cloning.Cloner;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -10,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -39,20 +39,16 @@ public class AlgoDIMDFSBased {
     // all unique items present in dataset
     private Integer[] intKeys;
     // total candidate itemsets
-    int candidateItemset = 0;
-    int prunedItemset = 0;
-    int supportCountedItemset = 0;
-    int addedToIITItemset = 0;
+    int candidateItemsetsCount = 0;
     FPTree tree = null;
-    InfrequentItemsetsTree iiTree = null;
-    float minsup;
-    int maxitems, countitemsets = 0;
-    int countt = 0;
+    float _minsupp;
+    int _maxitems, freqItemsetsCount = 0;
     Integer preference[];
     // used by dfs for support counting
-    private int sumOfSupport = 0;
+    //private final int sumOfSupport = 0;
     private int currLevel;
 
+    //int sumOfSupport=0;
     /**
      * Method to run the FP tree based ORed Itemset generation algorithm.
      *
@@ -171,8 +167,8 @@ public class AlgoDIMDFSBased {
         System.out.println("Tree build time : " + (t2 - t1) + "ms");
         t1 = System.currentTimeMillis();
         // calling FPOred function on TREE tree with minsupp.
-        minsup = minsupp;
-        maxitems = maxitem;
+        _minsupp = minsupp;
+        _maxitems = maxitem;
         FPORed();
         t2 = System.currentTimeMillis();
 
@@ -238,81 +234,81 @@ public class AlgoDIMDFSBased {
 
         List<Integer> list = new ArrayList<>();
         //List<Integer> origList = new ArrayList<>();
-        preference = new Integer[total_singles];
+        //preference = new Integer[total_singles];
+        //BUG: IF only frequent items are kept, 
+        //then all generateed itemsets are always frequent
+        /*int pruned_singles = 0;
         for (Integer i = 0; i < intKeys.length; i++) {
+            //System.out.println(mapSupport.get(intKeys[i]));
+            if (mapSupport.get(intKeys[i]) >= _minsupp) {
+                list.add(intKeys[i]);
+            } else {
+                //System.out.println("Pruned "+intKeys[i]+"single item infrequency.");
+                pruned_singles++;
+            }
+        }
+        int remainingSingles = total_singles - pruned_singles;
+        //System.out.println(remainingSingles);
+        if (remainingSingles == 0) {
+            System.out.println("NO candidates satsify the min supp condition!");
+            return;
+        } else if (remainingSingles < _maxitems) {
+            _maxitems = remainingSingles;
+        }*/
+
+        for (Integer i = 0; i < intKeys.length; i++) {
+            //System.out.println(mapSupport.get(intKeys[i]));
             list.add(intKeys[i]);
         }
 
-        /*Cloner cloner = new Cloner();
-        origList = cloner.deepClone(list);
-        System.out.println("Original List: " + origList.toString());*/
-        Collections.sort(list, new Comparator<Integer>() {
-            @Override
-            public int compare(Integer item1, Integer item2) {
-                // compare the frequency
-                int compare = mapSupport.get(item2) - mapSupport.get(item1);
-                // if the same frequency, we check the lexical ordering!
-                if (compare == 0) {
-                    return (item1 - item2);
-                }
-                // otherwise, just use the frequency
-                return compare;
-            }
-        });
-        for (int i = 0; i < intKeys.length; i++) {
-            preference[list.get(i)] = i;
+        if (total_singles == 0) {
+            System.out.println("NO candidates satsify the min supp condition!");
+            return;
+        } else if (total_singles < _maxitems) {
+            _maxitems = total_singles;
         }
 
-        //System.out.println("Mapped List: " + list.toString());
         long time = 0;
         long t1, t2;
         List<List<Integer>> levelItemsets = new ArrayList<>();
         t1 = System.currentTimeMillis();
 
-        iiTree = new InfrequentItemsetsTree();
+        if (_maxitems < total_singles) {
 
-        //ICombinatoricsVector<Integer> initialVector = Factory.createVector(list);
-        currLevel = 0;
-        if (maxitems < total_singles) {
-            levelItemsets = generateLevelOne(list, maxitems);
-            //levelItemsets =  Generator.combination(list).simple(maxitems).stream().collect(Collectors.<List<Integer>>toList());
+            levelItemsets = generateLevelOne(list, _maxitems);
         } else {
-            countitemsets++;
-            //SortedSet<Integer> set = new TreeSet<>();
-            //set.addAll(list);
-            //test.Algorithm.frequent_list_set.add(set.toArray(new Integer[list.size()]));
-            //test.Algorithm.frequent_list.put(set.toString(), (float)1.0);
-            levelItemsets = generateLevelOne(list, maxitems - 1);
-            //levelItemsets = (List<List<Integer>>) Generator.combination(list).simple(maxitems-1).stream().collect(Collectors.<List<Integer>>toList());;
+            System.out.println("\nLEVEL: " + currLevel + "\nCurrent itemset size: " + list.size() + "\nLevel candidate itemsets on ENTRY: " + 1);
+            candidateItemsetsCount++;
+            currLevel++;
+            processItemset(list);
+            levelItemsets = generateLevelOne(list, _maxitems - 1);
         }
         t2 = System.currentTimeMillis();
         System.out.println("\nMiddle lattice generation, Time: " + (t2 - t1));
         while (!levelItemsets.isEmpty() && !levelItemsets.get(0).isEmpty()) {
-            candidateItemset += levelItemsets.size();
-            System.out.println("\nLEVEL: " + currLevel);
+            candidateItemsetsCount += levelItemsets.size();
+            System.out.println("\nLEVEL: " + currLevel + "\nCurrent itemset size: " + levelItemsets.get(0).size() + "\nLevel candidate itemsets on ENTRY: " + levelItemsets.size());
             //System.out.println(countitemsets);
-            //System.out.println("Level itemsets on ENTRY: " + levelItemsets);
+            //System.out.println("Level itemsets on ENTRY: " + levelItemsets.size());
             //System.out.println("ENTERED NEW LEVEL");
             t1 = System.currentTimeMillis();
             levelItemsets = processItemsets(levelItemsets);
             t2 = System.currentTimeMillis();
-            //System.out.println("Level itemsets on PRUNING: " + levelItemsets);
-            System.out.println("Processing Done, Time: " + (t2 - t1));
+            System.out.println("Level frequent itemsets: " + levelItemsets.size() + "\nProcessing Done, Time: " + (t2 - t1));
             time += t2 - t1;
 
-            t1 = System.currentTimeMillis();
+            /*t1 = System.currentTimeMillis();
             for (List<Integer> itemset : levelItemsets) {
                 Collections.sort(itemset);
             }
             t2 = System.currentTimeMillis();
-            System.out.println("Itemsets PreSort, Time: " + (t2 - t1));
-
+            System.out.println("Itemsets PreSort, Time: " + (t2 - t1));*/
             t1 = System.currentTimeMillis();
             levelItemsets = getSubsetItemsets(levelItemsets);
             t2 = System.currentTimeMillis();
             System.out.println("Subset Generation, Time: " + (t2 - t1));
 
-            t1 = System.currentTimeMillis();
+            /*t1 = System.currentTimeMillis();
             for (List<Integer> itemset : levelItemsets) {
                 Collections.sort(itemset, new Comparator<Integer>() {
                     @Override
@@ -329,18 +325,15 @@ public class AlgoDIMDFSBased {
                 });
             }
             t2 = System.currentTimeMillis();
-            System.out.println("Itemsets PostSort, Time: " + (t2 - t1));
+            System.out.println("Itemsets PostSort, Time: " + (t2 - t1));*/
             //System.out.println("Level itemsets on EXIT: " + levelItemsets);
             ++currLevel;
         }
         // writer.close();
         // summarizing result
         System.out.println("\nTime in support calculation:" + time);
-        System.out.println("Total candidates " + candidateItemset);
-        System.out.println("Total " + countitemsets + " frequent ORed Itemsets found.");
-        System.out.println("Total " + addedToIITItemset + " itemsets added to IIT.");
-        System.out.println("Total " + prunedItemset + " itemsets pruned without support count.");
-        System.out.println("Total " + supportCountedItemset + " itemsets processed for support count.");
+        System.out.println("Total candidates " + candidateItemsetsCount);
+        System.out.println("Total " + freqItemsetsCount + " frequent ORed Itemsets found.");
     }
 
     /**
@@ -367,29 +360,32 @@ public class AlgoDIMDFSBased {
             }
         }
 
-        return k == 0;
+        return true;//k == 0;
     }
 
     /**
-     * Geneates all subset itemsets of the given itemset
+     * Generates all subset itemsets of the given itemset
      *
      * @param itemset the itemset whose subset itemsets is required
      * @return all the subsets of the passed itemset
      */
     private List<List<Integer>> generateSubsets(List<Integer> itemset) {
         List<List<Integer>> subsetItemsets = new ArrayList<>();
-        Cloner cloner = new Cloner();
-        if (itemset.get(0) == 0) {
+        if (itemset.contains(0)) {
             for (int k = itemset.size() - 1; k > 0; k--) {
                 if (checkSeq(itemset, k)) {
-                    List<Integer> newItemset = cloner.deepClone(itemset);
+                    //List<Integer> newItemset = cloner.deepClone(itemset);
+                    List<Integer> newItemset = new ArrayList<>(itemset);
+                    //newItemset.addAll(itemset);
                     newItemset.remove(k);
                     subsetItemsets.add(newItemset);
                 }
             }
 
             //if (itemset.get(0) == 0) {
-            List<Integer> newItemset = cloner.deepClone(itemset);
+            //List<Integer> newItemset = cloner.deepClone(itemset);
+            List<Integer> newItemset = new ArrayList<>(itemset);
+            //newItemset.addAll(itemset);
             newItemset.remove(0);
             subsetItemsets.add(newItemset);
             //}
@@ -443,72 +439,36 @@ public class AlgoDIMDFSBased {
         return subsets;
     }
 
-    private boolean checkIITPath(List<Integer> list, int i, IITNode X_node) {
-        if (i >= 0) {
-            IITNode Y_node = X_node.parent;
+    public void processItemset(List<Integer> currItemset) {
+        float val = FindSupportDFS(currItemset);
+        //System.out.println("--> " + currItemset.toString() + " val: " + val + " tnr: " + getDatabaseSize());
 
-            while (Y_node != iiTree.root) {
-                //System.out.println("y_node: " + Y_node.itemID + " item: " + list.get(i));
-                if (Y_node.itemID == list.get(i)) {
-                    if (i == 0) {
-                        //System.out.println("RETURN true, MID");
-                        return true;
-                    } else {
-                        i--;
-                    }
-                } else if (preference[Y_node.itemID] <= preference[list.get(i)]) {
-                    //System.out.println(preference[Y_node.itemID]+" "+preference[list.get(i)]);
-                    //System.out.println("RETURN false, MID");
-                    return false;
-                }
-                Y_node = Y_node.parent;
-            }
-        }
-        //System.out.println("RETURN false, END ");
-        return false;
-    }
+        if (val >= _minsupp) {
+            freqItemsetsCount++;
+            //checkClosed(currItemset, currTidset);
+            /*SortedSet<Integer> set = new TreeSet<>();
+                set.addAll(currItemset);
+                
+                test.Algorithm.frequent_list_set.add(set.toArray(new Integer[currItemset.size()]));
+                test.Algorithm.frequent_list.put(set.toString(), val);*/
+            //prints the freq ored itemsets
+            //System.out.println("--> " + currItemset.toString() + " val: " + val + " tnr: " + getDatabaseSize());
 
-    public boolean isSubset(List<Integer> itemset) {
-        int N = itemset.size() - 1;
-        boolean temp = false;
-        IITNode X_node = iiTree.mapItemNodes.get(itemset.get(N));
-
-        if (N == 0 && X_node != null) {
-            return true;
         }
 
-        while (X_node != null) {
-            if (N - 1 >= 0) {
-                temp = checkIITPath(itemset, N - 1, X_node);
-            }
-
-            if (temp) {
-                return true;
-            }
-            X_node = X_node.nodeLink;
-        }
-        return false;
     }
 
     public List<List<Integer>> processItemsets(List<List<Integer>> itemsets) {
         List<List<Integer>> levelItemsets = new ArrayList<>();
-        for (int i = 0; i < itemsets.size(); i++) {
-            List<Integer> currItemset = itemsets.get(i);
+        //for (int i = 0; i < itemsets.size(); i++) {
+        for (List<Integer> currItemset : itemsets) {
+            //List<Integer> currItemset = itemsets.get(i);
 
-            // check whether infrequent
-            if (currLevel != 0) {
-                if (isSubset(currItemset)) {
-                    prunedItemset++;
-                    //System.out.println("PRUNED: " + currItemset);
-                    continue;
-                }
-            }
-            supportCountedItemset++;
             float val = FindSupportDFS(currItemset);
             //System.out.println("--> " + currItemset.toString() + " val: " + val + " tnr: " + getDatabaseSize());
 
-            if (val >= minsup) {
-                countitemsets++;
+            if (val >= _minsupp) {
+                freqItemsetsCount++;
                 /*SortedSet<Integer> set = new TreeSet<>();
                 set.addAll(currItemset);
                 
@@ -517,64 +477,9 @@ public class AlgoDIMDFSBased {
                 //prints the freq ored itemsets
                 //System.out.println("--> " + currItemset.toString() + " val: " + val + " tnr: " + getDatabaseSize());
                 levelItemsets.add(currItemset);
-            } else {// add the itemset to IIT
-                addedToIITItemset++;
-                iiTree.addTransaction(currItemset);
-                //System.out.println("ADDED " + currItemset + " to IIT");
             }
         }
         return levelItemsets;
-    }
-
-    /**
-     *
-     * @param src
-     * @param visited
-     * @param list
-     */
-    private void DFSUtil(FPNode src, boolean visited[], List<Integer> list) {
-        // Mark the current node as visited and print it
-        visited[src.nodeID] = true;
-        //System.out.println("Visited: "+src.nodeID);
-
-        // Recur for all the vertices adjacent to this vertex
-        List<FPNode> adj = src.childs;
-
-        Collections.sort(adj, new Comparator<FPNode>() {
-            @Override
-            public int compare(FPNode node1, FPNode node2) {
-                // compare the frequency
-                int compare = mapSupport.get(node2.itemID) - mapSupport.get(node1.itemID);
-                // if the same frequency, we check the lexical ordering!
-                if (compare == 0) {
-                    return (node1.itemID - node2.itemID);
-                }
-                // otherwise, just use the frequency
-                return compare;
-            }
-        });
-
-        //System.out.println("list size: "+src.childs.size());
-        for (int i = 0; i < adj.size(); i++) {
-            boolean foundFlag = false;
-            FPNode n = adj.get(i);
-            //System.out.println("Visited node: "+n.nodeID +" visited: "+visited[n.nodeID]); 
-
-            if (!visited[n.nodeID]) //n.nodeID != -1 && 
-            {
-                for (Integer item : list) {
-                    if (item.equals(n.itemID)) {
-                        sumOfSupport += n.counter;
-                        foundFlag = true;
-                        break;
-                    }
-                }
-                if (foundFlag == true) {
-                    continue;
-                }
-                DFSUtil(n, visited, list);
-            }
-        }
     }
 
     /**
@@ -583,19 +488,83 @@ public class AlgoDIMDFSBased {
      * @return
      */
     private float FindSupportDFS(List<Integer> list) {
-        sumOfSupport = 0;
+        int sumOfSupport = 0;
         // Mark all the vertices as not visited(By default
         // set as false)
         boolean visited[] = new boolean[FPTree.current_node + 1];
         //Arrays.fill(visited, false);
-        for (int i = 0; i < visited.length; ++i) {
+        /*for (int i = 0; i < visited.length; ++i) {
             visited[i] = false;
-        }
+        }*/
 
-        // Call the recursive helper function to print DFS traversal
-        DFSUtil(tree.root, visited, list);
-        return sumOfSupport/(float)getDatabaseSize();
+        // Create a stack for DFS+
+        LinkedList<FPNode> stack = new LinkedList<>();
+        //Stack<FPNode> stack = new Stack<>();
+        // Mark the current node as visited and enqueue it
+        visited[0] = true;
+        //stack.addFirst(tree.root);
+       stack.addAll(0,tree.root.childs);
+        FPNode src;
+        //System.out.print("Reached "+tree.root.nodeID);
+        while (!stack.isEmpty()) {
+            // Dequeue a vertex from queue and print it
+            src = stack.poll();
+            //src = stack.pop();
+            //System.out.print("Dequed "+src+" ");
+
+            // Get all adjacent vertices of the dequeued vertex s
+            // If a adjacent has not been visited, then mark it
+            // visited and enqueue it
+            //stack.addAll(0, adj);
+            /*Collections.sort(adj, new Comparator<FPNode>() {
+                @Override
+                public int compare(FPNode node1, FPNode node2) {
+                    // compare the frequency
+                    int compare = mapSupport.get(node2.itemID) - mapSupport.get(node1.itemID);
+                    // if the same frequency, we check the lexical ordering!
+                    if (compare == 0) {
+                        return (node1.itemID - node2.itemID);
+                    }
+                    // otherwise, just use the frequency
+                    return compare;
+                }
+            });*/
+            //System.out.println("list size: "+src.childs.size());
+            //for (int i = 0; i < adj.size(); i++) {
+            //for(FPNode n: adj){   
+            boolean foundFlag = false;
+            //FPNode n = adj.get(i);
+            //System.out.println("Visited node: "+n.nodeID +" visited: "+visited[n.nodeID]); 
+            if (!visited[src.nodeID]) //n.nodeID != -1 && 
+            {
+                /*for (Integer item : list) {
+                        if (item.equals(n.itemID)) {
+                            sumOfSupport += n.counter;
+                            foundFlag = true;
+                            break;
+                        }
+                    }*/
+
+                if (list.contains(src.itemID)) {
+                    //System.out.println("count: "+src.counter+"\nbefore: "+sumOfSupport);
+                    sumOfSupport += src.counter;
+                    //System.out.println("after: "+sumOfSupport);
+                    //stack.addAll(0, src.childs);
+                    foundFlag = true;
+                }
+                  if (!foundFlag ) {
+                   stack.addAll(0, src.childs);
+                    
+                 }
+                //System.out.println("Visited: "+src.nodeID);
+                visited[src.nodeID] = true;
+
+                //}
+            }
+        }
+        return sumOfSupport / (float) getDatabaseSize();
     }
+
     /**
      * Get the number of transactions in the last transaction database read.
      *

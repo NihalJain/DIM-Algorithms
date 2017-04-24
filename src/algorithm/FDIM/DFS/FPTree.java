@@ -1,23 +1,23 @@
-package algorithm.FDIM.DFSBased;
+package algorithm.FDIM.DFS;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * This is an implementation of a Infrequent Itemsets Tree.
+ * This is an implementation of a FPTree.
  *
  * @author nihal jain
  * @version 1.0
  */
-public class InfrequentItemsetsTree {
+public class FPTree {
 
     // List of pairs (item, frequency) of the header table
-    Map<Integer, IITNode> mapItemNodes = new HashMap<>();
+    Map<Integer, FPNode> mapItemNodes = new HashMap<>();
     // root of the tree
-    IITNode root = new IITNode(); // null node
+    FPNode root = new FPNode(); // null node
     int current_branch = 0;
-
+    static int current_node = 1;
 
     /**
      * Method for adding a transaction to the fp-tree (for the initial
@@ -26,24 +26,25 @@ public class InfrequentItemsetsTree {
      * @param transaction transaction to be added
      */
     public void addTransaction(List<Integer> transaction) {
-        IITNode currentNode = root;
+        FPNode currentNode = root;
 
         boolean flag = false;
-        IITNode last = null;
+        FPNode last = null;
         // For each item in the transaction
         for (Integer item : transaction) {
             // look if there is a node already in the FP-Tree
-            IITNode child = currentNode.getChildWithID(item);
+            FPNode child = currentNode.getChildWithID(item);
             if (child == null) {
                 flag = true;
                 // there is no node, we create a new one
-                IITNode newNode = new IITNode();
+                FPNode newNode = new FPNode();
                 newNode.itemID = item;
                 newNode.parent = currentNode;
 
-                //newNode.nodeID = current_node;
-                //current_node++;
+                newNode.nodeID = current_node;
+                current_node++;
                 //System.out.println("current_node: "+current_node+" item: "+item+" nodeID: "+newNode.nodeID);
+
                 // we link the new node to its parrent
                 currentNode.childs.add(newNode);
 
@@ -52,7 +53,7 @@ public class InfrequentItemsetsTree {
 
                 // We update the header table.
                 // We check if there is already a node with this id in the header table
-                IITNode headernode = mapItemNodes.get(item);
+                FPNode headernode = mapItemNodes.get(item);
                 if (headernode == null) { // there is not
                     mapItemNodes.put(item, newNode);
                 } else { // there is
@@ -65,7 +66,7 @@ public class InfrequentItemsetsTree {
                 }
             } else {
                 // there is a node already, we update it
-                //child.counter++;
+                child.counter++;
                 //child.nodeID = currentNode.nodeID;
                 last = child;
                 currentNode = child;
