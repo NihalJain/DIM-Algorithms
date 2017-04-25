@@ -13,6 +13,7 @@ import algorithm.FDIM.TidSet.AlgoDIMTidSet;
 import algorithm.FDIM.MFPImproved.AlgoDIMMFPImproved;
 
 import algorithm.FDCIM.TidSet.AlgoDCIMTidSet;
+import algorithm.FDCIM.AncestorBitset.AlgoDCIMAncestorBitset;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -135,6 +136,19 @@ public class Algorithm {
             case 8:
                 System.out.println("                       DIM TidSet (bitset) ALGORITHM");
                 break;
+            case 9:
+                System.out.println("                        DCIM BFS (bitset) ALGORITHM");
+                break;
+            case 10:
+                System.out.println("                        DCIM DFS (bitset) ALGORITHM");
+                break;
+            case 11:
+                System.out.println("                        DCIM AncestorBitset (bitset) ALGORITHM");
+                break;
+            case 12:
+                System.out.println("                        DCIM TidSet (bitset) ALGORITHM");
+                break;
+             
             default:
                 System.out.println("                       DIM MFP-Improved");
                 break;
@@ -219,7 +233,23 @@ public class Algorithm {
                 totalSingles = AlgoDIMTidSet.total_singles;
                 break;
             }
-            case 9: {
+            /*case 9: {
+                //DCIM-BFS
+                break;
+            }
+            case 10 : {
+                //DCIM-DFS
+                break;
+            }*/
+            case 11: {
+                AlgoDCIMAncestorBitset dimAlgo = new AlgoDCIMAncestorBitset ();
+                dimAlgo.runAlgorithm(input, minsupp, maxitem);
+                databaseSize = dimAlgo.getDatabaseSize();
+                totalSingles = AlgoDCIMAncestorBitset .total_singles;
+                break;
+            }
+            
+            case 12: {
                 AlgoDCIMTidSet dimAlgo = new AlgoDCIMTidSet();
                 dimAlgo.runAlgorithm(input, minsupp, maxitem);
                 databaseSize = dimAlgo.getDatabaseSize();
