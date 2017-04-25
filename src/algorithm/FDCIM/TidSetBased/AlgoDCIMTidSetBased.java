@@ -1,4 +1,4 @@
-package algorithm.FDIM.BitSet;
+package algorithm.FDCIM.TidSetBased;
 
 //import com.rits.cloning.Cloner;
 import java.io.BufferedReader;
@@ -22,7 +22,7 @@ import org.apache.commons.lang3.tuple.MutablePair;
  * @author nihal jain
  * @version 1.0
  */
-public class AlgoDIMBitSet {
+public class AlgoDCIMTidSetBased {
 
     //Cloner cloner = new Cloner();
     // number of transactions in the database

@@ -1,4 +1,4 @@
-package algorithm.FDIM.BitSetBasedNoIIT;
+package algorithm.FDIM.AncestorBitsetBased;
 
 import java.util.BitSet;
 import java.util.HashMap;

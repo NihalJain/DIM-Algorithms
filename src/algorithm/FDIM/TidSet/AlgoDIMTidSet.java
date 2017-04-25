@@ -1,4 +1,4 @@
-package algorithm.FDIM.Tidset;
+package algorithm.FDIM.TidSet;
 
 //import com.rits.cloning.Cloner;
 import java.io.BufferedReader;
@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
-import org.apache.commons.lang3.tuple.MutablePair;
 
 /**
  * Implementation of bitset based algorithm for finding Frequent ORed Itemsets.

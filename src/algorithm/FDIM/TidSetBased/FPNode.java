@@ -1,4 +1,4 @@
-package algorithm.FDIM.BitSetBasedNoIIT;
+package algorithm.FDIM.TidSetBased;
 
 import java.util.ArrayList;
 import java.util.BitSet;
