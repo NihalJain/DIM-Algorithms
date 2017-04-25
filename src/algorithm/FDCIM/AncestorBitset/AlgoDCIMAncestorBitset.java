@@ -330,8 +330,9 @@ public class AlgoDCIMAncestorBitset {
             //System.out.println("Level itemsets on EXIT: " + levelItemsets);
              //for closedCheckOptimized
             //System.out.println("B:" + tidsetTable);
-            tidsetTable.putAll(currTidsetTable);
-            //System.out.println("A:" + tidsetTab
+           tidsetTable.putAll(currTidsetTable);
+            //System.out.println("A:" + tidsetTable);
+            currTidsetTable = new HashMap<>();
             ++currLevel;
         }
         // writer.close();
@@ -485,6 +486,7 @@ public class AlgoDCIMAncestorBitset {
             freqItemsetsCount++;
             int hC = currTidset.hashCode();
             //String hC = currTidset.toString();
+            //System.out.println("hC: " + hC + " and bitset: " + currTidset);
             checkClosed(currItemset, hC);
             /*SortedSet<Integer> set = new TreeSet<>();
                 set.addAll(currItemset);
@@ -512,6 +514,7 @@ public class AlgoDCIMAncestorBitset {
                 freqItemsetsCount++;
                 int hC = currTidset.hashCode();
                 //String hC = currTidset.toString();
+                //System.out.println("hC: " + hC + " and bitset: " + currTidset);
                 checkClosed(currItemset, hC);
                 /*SortedSet<Integer> set = new TreeSet<>();
                 set.addAll(currItemset);
@@ -579,6 +582,7 @@ public class AlgoDCIMAncestorBitset {
                 X_node = X_node.nodeLink;
             }
         }
+        //System.out.println("Sop: "+sum+" tset:"+tidSet.size()+"-> "+tidSet);
         if (tidSet.size() >= _minsupp) {
             BitSet tidBitSet = new BitSet(databaseSize + 1);
             for(Integer tID: tidSet)

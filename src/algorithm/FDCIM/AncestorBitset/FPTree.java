@@ -84,11 +84,11 @@ public class FPTree {
                 }
             } else {
                 //or the contents with the parent's bitMap
-                currentNode.itemID = item;
+                //currentNode.itemID = item;
                 if (currentNode != root) {
                     child.bitMap.or(currentNode.bitMap);
                 }
-
+                child.transactionList.add(tID);
                 // there is a node already, we update it
                 //child.counter++;
                 //child.nodeID = currentNode.nodeID;
