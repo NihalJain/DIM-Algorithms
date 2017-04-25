@@ -1,6 +1,7 @@
-package algorithm.FDIM.Tidset;
+package algorithm.FDCIM.TidSet;
 
 //import com.rits.cloning.Cloner;
+import algorithm.FDIM.BitSet.*;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -10,6 +11,7 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -21,7 +23,7 @@ import org.apache.commons.lang3.tuple.MutablePair;
  * @author nihal jain
  * @version 1.0
  */
-public class AlgoDIMTidSet {
+public class AlgoDCIMTidSet {
 
     //Cloner cloner = new Cloner();
     // number of transactions in the database
@@ -35,7 +37,7 @@ public class AlgoDIMTidSet {
 
     List<BitSet> dT;
 
-    int _minsupp;
+    float _minsupp;
     int _maxitems;
     // total candidate itemsets
     int candidateItemsetsCount = 0;
@@ -44,13 +46,13 @@ public class AlgoDIMTidSet {
     // current level under inspection
     private int currLevel = 0;
 
-    //int closedItemsetsCount = 0;
+    int closedItemsetsCount = 0;
 
     //HashMap<String, MutablePair<Integer, List<String>>> tidsetTable = new HashMap<>();
-    //HashMap<Integer, MutablePair<Integer, List<String>>> tidsetTable = new HashMap<>();
-    //HashMap<Integer, MutablePair<Integer, List<String>>> currTidsetTable = new HashMap<>();
+    HashMap<Integer, MutablePair<Integer, List<BitSet>>> tidsetTable = new HashMap<>();
+    HashMap<Integer, MutablePair<Integer, List<BitSet>>> currTidsetTable = new HashMap<>();
 
-    /**
+   /**
      * Method to run the FP tree based ORed Itemset generation algorithm.
      *
      * @param input the path to an input file containing a transaction database.
@@ -310,13 +312,27 @@ public class AlgoDIMTidSet {
             t2 = System.currentTimeMillis();
             System.out.println("Itemsets PostSort, Time: " + (t2 - t1));*/
             //System.out.println("Level itemsets on EXIT: " + levelItemsets);
+             //for closedCheckOptimized
+            //System.out.println("B:" + tidsetTable);
+            tidsetTable.putAll(currTidsetTable);
+            //System.out.println("A:" + tidsetTable);
+            currTidsetTable = new HashMap<>();
             ++currLevel;
         }
         // writer.close();
         // summarizing result
         System.out.println("\nTime in support calculation:" + time);
         System.out.println("Total candidates " + candidateItemsetsCount);
+        System.out.println("Total " + closedItemsetsCount + " frequent ORed CLOSED Itemsets found\nTotal unique TidSets = " + tidsetTable.size());
         System.out.println("Total " + freqItemsetsCount + " frequent ORed Itemsets found.");
+        
+        
+        /*Iterator closedItemsets = tidsetTable.entrySet().iterator();
+        while (closedItemsets.hasNext()) {
+            Map.Entry pair = (Map.Entry) closedItemsets.next();
+            System.out.println(pair.getKey() + " => " + pair.getValue());
+            closedItemsets.remove(); // avoids a ConcurrentModificationException
+        }*/
     }
 
     private boolean checkSeq(BitSet itemset, int k) {
@@ -447,15 +463,16 @@ public class AlgoDIMTidSet {
     }
 
     public void processItemset(BitSet currItemset) {
-        int val = FindSupport(currItemset);
+        BitSet currTidset = FindSupport(currItemset);
         //System.out.println("--> " + currItemset.toString() + " val: " + val + " tnr: " + getDatabaseSize());
 
-        if (val >= _minsupp) {
+        //if (val >= _minsupp) {
+        if (currTidset != null) {
             freqItemsetsCount++;
-            //checkClosed(currItemset, currTidset);
+            checkClosed(currItemset, currTidset);
             /*SortedSet<Integer> set = new TreeSet<>();
                 set.addAll(currItemset);
-                
+
                 test.Algorithm.frequent_list_set.add(set.toArray(new Integer[currItemset.size()]));
                 test.Algorithm.frequent_list.put(set.toString(), val);*/
             //prints the freq ored itemsets
@@ -470,15 +487,16 @@ public class AlgoDIMTidSet {
         //for (int i = 0; i < itemsets.size(); i++) {
         for (BitSet currItemset : itemsets) {
             //List<Integer> currItemset = itemsets.get(i);
-
-            int val = FindSupport(currItemset);
+            //int val = FindSupport(currItemset);
+            BitSet currTidset = FindSupport(currItemset);
             //System.out.println("--> " + currItemset.toString() + " val: " + val + " tnr: " + getDatabaseSize());
 
-            if (val >= _minsupp) {
+            if (currTidset != null) {
                 freqItemsetsCount++;
+                checkClosed(currItemset, currTidset);
                 /*SortedSet<Integer> set = new TreeSet<>();
                 set.addAll(currItemset);
-                
+
                 test.Algorithm.frequent_list_set.add(set.toArray(new Integer[currItemset.size()]));
                 test.Algorithm.frequent_list.put(set.toString(), val);*/
                 //prints the freq ored itemsets
@@ -489,12 +507,66 @@ public class AlgoDIMTidSet {
         return levelItemsets;
     }
 
+    /*void checkClosed(List<Integer> list, BitSet temp) {
+        //String hC = temp.toString();//Total 427054 frequent ORed CLOSED Itemsets found, total unique TidSets = 255239:NO-COLLISION
+        int hC = temp.hashCode();   //Total 426994 frequent ORed CLOSED Itemsets found, total unique TidSets = 246577:COLLISION
+        System.out.println("hC: "+hC+" and bitset: "+temp);
+        boolean keyFlag = tidsetTable.containsKey(hC);
+
+        if (keyFlag) {
+            System.out.println(">>HERE");
+            MutablePair<Integer, List<String>> pair = tidsetTable.get(hC);
+            System.out.println(">> OldPair - > "+pair+ " CurrList: "+ list);
+            if (list.size() == pair.left) {
+                System.out.println(">>HERE");
+                closedItemsetsCount++;
+                pair.right.add(list.toString());
+            }
+        } else {
+            List<String> itemsetList = new ArrayList<>();
+            itemsetList.add(list.toString());
+            closedItemsetsCount++;
+            MutablePair<Integer, List<String>> pair = new MutablePair<>(list.size(), itemsetList);
+            System.out.println("ADDED CFI "+hC+":"+pair+"\n");
+            tidsetTable.put(hC, pair);
+        }
+    }*/
+    void checkClosed(BitSet list, BitSet temp) {
+        //String hC = temp.toString();//Total 427054 frequent ORed CLOSED Itemsets found, total unique TidSets = 255239:NO-COLLISION
+        int hC = temp.hashCode();   //Total 426994 frequent ORed CLOSED Itemsets found, total unique TidSets = 246577:COLLISION
+        // System.out.println("hC: " + hC + " and bitset: " + temp);
+        boolean globalFlag = tidsetTable.containsKey(hC);
+
+        if (!globalFlag) {
+            boolean localFlag = currTidsetTable.containsKey(hC);
+
+            if (localFlag) {
+                //System.out.println(">>HERE");
+                MutablePair<Integer, List<BitSet>> pair = currTidsetTable.get(hC);
+                //System.out.println(">> OldPair - > " + pair + " CurrList: " + list);
+                if (list.cardinality() == pair.left) {
+                    //System.out.println(">>HERE");
+                    closedItemsetsCount++;
+                    pair.right.add(list);
+                }
+            } else {
+
+                List<BitSet> itemsetList = new ArrayList<>();
+                itemsetList.add(list);
+                closedItemsetsCount++;
+                MutablePair<Integer, List<BitSet>> pair = new MutablePair<>(list.cardinality(), itemsetList);
+                //System.out.println("ADDED CFI " + hC + ":" + pair + "\n");
+                currTidsetTable.put(hC, pair);
+            }
+        }
+    }
+
     /**
      *
      * @param list candidate itemset
      * @return support of itemset
      */
-    private int FindSupport(BitSet list) {
+    private BitSet FindSupport(BitSet list) {
         BitSet temp = new BitSet(databaseSize);//cloner.deepClone(dT.get(0));
         for (int k = list.nextSetBit(0); k >= 0; k=list.nextSetBit(k+1)) {
             temp.or(dT.get(k));
@@ -509,11 +581,10 @@ public class AlgoDIMTidSet {
         //return ((float) indexes.size() / getDatabaseSize());
         //System.out.println(list + " -> " + temp.toString() + "," + temp.cardinality());
         //return temp.cardinality();
-        /*if (temp.cardinality() >= _minsupp) {
+        if (temp.cardinality() >= _minsupp) {
             return temp;
         }
-        return null;*/
-        return temp.cardinality();//(float)databaseSize;
+        return null;
     }
 
     /**

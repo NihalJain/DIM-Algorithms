@@ -1,5 +1,6 @@
 package test;
 
+import algorithm.FDCIM.TidSet.AlgoDCIMTidSet;
 import algorithm.FDIM.AncestorBitset.AlgoDIMAncestorBitset;
 import algorithm.FDIM.BFS.AlgoDIMBFS;
 import algorithm.FDIM.BFSBased.AlgoDIMBFSBased;
@@ -196,6 +197,13 @@ public class Algorithm {
                 dimAlgo.runAlgorithm(input, minsupp, maxitem);
                 databaseSize = dimAlgo.getDatabaseSize();
                 totalSingles = AlgoDIMDFS.total_singles;
+                break;
+            }
+            case 8: {
+                AlgoDCIMTidSet dimAlgo = new AlgoDCIMTidSet();
+                dimAlgo.runAlgorithm(input, minsupp, maxitem);
+                databaseSize = dimAlgo.getDatabaseSize();
+                totalSingles = AlgoDCIMTidSet.total_singles;
                 break;
             }
             /*case 4: {
