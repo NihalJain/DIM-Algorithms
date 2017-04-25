@@ -35,7 +35,7 @@ public class AlgoDIMTidSet {
 
     List<BitSet> dT;
 
-    float _minsupp;
+    int _minsupp;
     int _maxitems;
     // total candidate itemsets
     int candidateItemsetsCount = 0;
@@ -152,7 +152,7 @@ public class AlgoDIMTidSet {
         System.out.println("Tree build time : " + (t2 - t1) + "ms");
         t1 = System.currentTimeMillis();
         // calling FPOred function on TREE tree with minsupp.
-        _minsupp = minsupp ;
+        _minsupp = (int)(minsupp * databaseSize);
         _maxitems = maxitems;
         FPORed();
         t2 = System.currentTimeMillis();
@@ -447,7 +447,7 @@ public class AlgoDIMTidSet {
     }
 
     public void processItemset(BitSet currItemset) {
-        float val = FindSupport(currItemset);
+        int val = FindSupport(currItemset);
         //System.out.println("--> " + currItemset.toString() + " val: " + val + " tnr: " + getDatabaseSize());
 
         if (val >= _minsupp) {
@@ -471,7 +471,7 @@ public class AlgoDIMTidSet {
         for (BitSet currItemset : itemsets) {
             //List<Integer> currItemset = itemsets.get(i);
 
-            float val = FindSupport(currItemset);
+            int val = FindSupport(currItemset);
             //System.out.println("--> " + currItemset.toString() + " val: " + val + " tnr: " + getDatabaseSize());
 
             if (val >= _minsupp) {
@@ -494,7 +494,7 @@ public class AlgoDIMTidSet {
      * @param list candidate itemset
      * @return support of itemset
      */
-    private float FindSupport(BitSet list) {
+    private int FindSupport(BitSet list) {
         BitSet temp = new BitSet(databaseSize);//cloner.deepClone(dT.get(0));
         for (int k = list.nextSetBit(0); k >= 0; k=list.nextSetBit(k+1)) {
             temp.or(dT.get(k));
@@ -513,7 +513,7 @@ public class AlgoDIMTidSet {
             return temp;
         }
         return null;*/
-        return temp.cardinality()/(float)databaseSize;
+        return temp.cardinality();//(float)databaseSize;
     }
 
     /**

@@ -42,7 +42,7 @@ public class AlgoDIMBFS {
     // total candidate itemsets
     int candidateItemsetsCount = 0;
     FPTree tree = null;
-    float _minsupp;
+    int _minsupp;
     int _maxitems, freqItemsetsCount = 0;
     Integer preference[];
     // used by dfs for support counting
@@ -168,7 +168,7 @@ public class AlgoDIMBFS {
         System.out.println("Tree build time : " + (t2 - t1) + "ms");
         t1 = System.currentTimeMillis();
         // calling FPOred function on TREE tree with minsupp.
-        _minsupp = minsupp;
+        _minsupp = (int)(minsupp*databaseSize);
         _maxitems = maxitem;
         FPORed();
         t2 = System.currentTimeMillis();
@@ -467,7 +467,7 @@ public class AlgoDIMBFS {
     }
 
     public void processItemset(BitSet currItemset) {
-        float val = FindSupportBFS(currItemset);
+        int val = FindSupportBFS(currItemset);
         //System.out.println("--> " + currItemset.toString() + " val: " + val + " tnr: " + getDatabaseSize());
 
         if (val >= _minsupp) {
@@ -491,7 +491,7 @@ public class AlgoDIMBFS {
         for (BitSet currItemset : itemsets) {
             //List<Integer> currItemset = itemsets.get(i);
 
-            float val = FindSupportBFS(currItemset);
+            int val = FindSupportBFS(currItemset);
             //System.out.println("--> " + currItemset.toString() + " val: " + val + " tnr: " + getDatabaseSize());
 
             if (val >= _minsupp) {
@@ -515,7 +515,7 @@ public class AlgoDIMBFS {
      * @param list
      * @return
      */
-    private float FindSupportBFS(BitSet list) {
+    private int FindSupportBFS(BitSet list) {
         int sumOfSupport = 0;
         // Mark all the vertices as not visited(By default
         // set as false)
@@ -586,7 +586,7 @@ public class AlgoDIMBFS {
                 }
             }
         }
-        return sumOfSupport / (float) getDatabaseSize();
+        return sumOfSupport;// (float) getDatabaseSize();
     }
 
    
