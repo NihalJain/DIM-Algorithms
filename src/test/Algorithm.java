@@ -1,5 +1,7 @@
 package test;
 
+import algorithm.FDIM.AncestorBitset.AlgoDIMAncestorBitset;
+import algorithm.FDIM.BFS.AlgoDIMBFS;
 import algorithm.FDIM.BFSBased.AlgoDIMBFSBased;
 import algorithm.FDIM.BitSet.AlgoDIMBitSet;
 import java.io.FileNotFoundException;
@@ -13,6 +15,7 @@ import algorithm.FDIM.BitSetBasedNoIIT.AlgoDIMBitSetBasedNoIIT;
 import algorithm.FDIM.DFS.AlgoDIMDFS;
 import algorithm.FDIM.DFSBased.AlgoDIMDFSBased;
 import algorithm.FDIM.MFPImproved.AlgoDIMMFPImproved;
+import algorithm.FDIM.Tidset.AlgoDIMTidSet;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.HashMap;
@@ -115,12 +118,15 @@ public class Algorithm {
                 System.out.println("                       DIM DFS Based ALGORITHM");
                 break;
             case 4:
-                System.out.println("                       DIM BitSet ALGORITHM");
+                System.out.println("                       DIM Ancestor Bitset ALGORITHM");
                 break;
             case 5:
-                System.out.println("                       DIM BitSet Based with no IIT ALGORITHM");
+                System.out.println("                       DIM Ancestor Bitset");
                 break;
             case 6:
+                System.out.println("                       DIM BFS(bitset) ALGORITHM");
+                break;
+            case 7:
                 System.out.println("                       DIM DFS(bitset) ALGORITHM");
                 break;
             default:
@@ -164,20 +170,28 @@ public class Algorithm {
                 break;
             }
             case 4: {
-                AlgoDIMBitSet dimAlgo = new AlgoDIMBitSet();
+                AlgoDIMTidSet dimAlgo = new AlgoDIMTidSet();
                 dimAlgo.runAlgorithm(input, minsupp, maxitem);
                 databaseSize = dimAlgo.getDatabaseSize();
-                totalSingles = AlgoDIMBitSet.total_singles;
+                totalSingles = AlgoDIMTidSet.total_singles;
                 break;
             }
+            
             case 5: {
-                AlgoDIMBitSetBasedNoIIT dimAlgo = new AlgoDIMBitSetBasedNoIIT();
+                AlgoDIMAncestorBitset dimAlgo = new AlgoDIMAncestorBitset();
                 dimAlgo.runAlgorithm(input, minsupp, maxitem);
                 databaseSize = dimAlgo.getDatabaseSize();
-                totalSingles = AlgoDIMBitSetBasedNoIIT.total_singles;
+                totalSingles = AlgoDIMAncestorBitset.total_singles;
                 break;
             }
             case 6: {
+                AlgoDIMBFS dimAlgo = new AlgoDIMBFS();
+                dimAlgo.runAlgorithm(input, minsupp, maxitem);
+                databaseSize = dimAlgo.getDatabaseSize();
+                totalSingles = AlgoDIMBFS.total_singles;
+                break;
+            }
+            case 7: {
                 AlgoDIMDFS dimAlgo = new AlgoDIMDFS();
                 dimAlgo.runAlgorithm(input, minsupp, maxitem);
                 databaseSize = dimAlgo.getDatabaseSize();

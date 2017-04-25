@@ -1,69 +1,68 @@
-package algorithm.FDIM.DFS;
+package algorithm.FDIM.Tidset;
 
+//import com.rits.cloning.Cloner;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
+import org.apache.commons.lang3.tuple.MutablePair;
 
 /**
- * Implementation of FP tree based algorithm for finding Frequent ORed Itemsets.
+ * Implementation of bitset based algorithm for finding Frequent ORed Itemsets.
  *
  * @author nihal jain
  * @version 1.0
  */
-public class AlgoDIMDFS {
+public class AlgoDIMTidSet {
 
-    // Number of transactions in the database
-    private int transactionCount = 0;
-    // PrintWriter object to write the output file
-    PrintWriter writer = null;
-    /**
-     * number of transactions in the database
-     */
+    //Cloner cloner = new Cloner();
+    // number of transactions in the database
     public static int databaseSize;
     // Hashmap for storing frequencies of each item in dataset
     final Map<Integer, Integer> mapSupport = new HashMap<>();
-    /**
-     * Number of items in dataset
-     */
+    // number of items in database
     public static int total_singles = 0;
     // all unique items present in dataset
     private Integer[] intKeys;
+
+    List<BitSet> dT;
+
+    int _minsupp;
+    int _maxitems;
     // total candidate itemsets
     int candidateItemsetsCount = 0;
-    FPTree tree = null;
-    int _minsupp;
-    int _maxitems, freqItemsetsCount = 0;
-    Integer preference[];
-    // used by dfs for support counting
-    //private final int sumOfSupport = 0;
-    private int currLevel;
+    // total frequent itemsets discovered
+    int freqItemsetsCount = 0;
+    // current level under inspection
+    private int currLevel = 0;
 
-    //int sumOfSupport=0;
+    int closedItemsetsCount = 0;
+
+    //HashMap<String, MutablePair<Integer, List<String>>> tidsetTable = new HashMap<>();
+    HashMap<Integer, MutablePair<Integer, List<String>>> tidsetTable = new HashMap<>();
+    HashMap<Integer, MutablePair<Integer, List<String>>> currTidsetTable = new HashMap<>();
+
     /**
      * Method to run the FP tree based ORed Itemset generation algorithm.
      *
      * @param input the path to an input file containing a transaction database.
      * @param minsupp the minimum support threshold.
-     * @param maxitem the maximum pattern length.
+     * @param maxitems the maximum pattern length.
      * @throws IOException exception if error reading or writing files.
      * @throws FileNotFoundException exception if input file not found.
      */
-    public void runAlgorithm(String input, float minsupp, int maxitem) throws FileNotFoundException, IOException {
+    public void runAlgorithm(String input, float minsupp, int maxitems) throws FileNotFoundException, IOException {
 
         // reset the transaction count
         databaseSize = 0;
-
         // (1) Initial database scan to determine the frequency of each item
         // The frequency is stored in a map:- key: item value: support
         long t1 = System.currentTimeMillis();
@@ -114,18 +113,22 @@ public class AlgoDIMDFS {
         // Before inserting a transaction in the FPTree, we sort the items
         // by descending order of support. We ignore items that
         // do not have the minimum support.
-        tree = new FPTree();
-        tree.root.nodeID = 0;
         // read the file
         BufferedReader reader = null;
         try {
             reader = new BufferedReader(new FileReader(input));
         } catch (Exception e) {
-            System.err.println("error: Unable to open input file");
+            System.out.println("error: Unable to open input file");
             System.exit(-1);
         }
         String line;
+
+        dT = new ArrayList<>();
+        for (int i = 0; i < total_singles; i++) {
+            dT.add(new BitSet(databaseSize));
+        }
         // for each line (transaction) until the end of the file
+        int tID = 1;
         while (((line = reader.readLine()) != null)) {
             // if the line is a comment, is empty or is a kind of metadata
             if (line.isEmpty() == true || line.charAt(0) == '#' || line.charAt(0) == '%' || line.charAt(0) == '@') {
@@ -137,30 +140,11 @@ public class AlgoDIMDFS {
             // for each item in the transaction
             while (lineSplited.hasMoreElements()) {
                 Integer item = Integer.parseInt(lineSplited.nextToken());
-                // only add items that have the minimum support
-                // if(!transaction.contains(item))
-                transaction.add(item);
+                dT.get(item).set(tID);
             }
 
-            // sort item in the transaction by descending order of support
-            Collections.sort(transaction, new Comparator<Integer>() {
-                @Override
-                public int compare(Integer item1, Integer item2) {
-                    // compare the frequency
-                    int compare = mapSupport.get(item2) - mapSupport.get(item1);
-                    // if the same frequency, we check the lexical ordering!
-                    if (compare == 0) {
-                        return (item1 - item2);
-                    }
-                    // otherwise, just use the frequency
-                    return compare;
-                }
-            });
-
-            // add the sorted transaction to the fptree.
-            tree.addTransaction(transaction);
             // increase the transaction count
-            databaseSize++;
+            tID++;
         }
         // close the input file
         reader.close();
@@ -168,13 +152,13 @@ public class AlgoDIMDFS {
         System.out.println("Tree build time : " + (t2 - t1) + "ms");
         t1 = System.currentTimeMillis();
         // calling FPOred function on TREE tree with minsupp.
-        _minsupp = (int)(minsupp*databaseSize);
-        _maxitems = maxitem;
+        _minsupp = (int)(minsupp * databaseSize);
+        _maxitems = maxitems;
         FPORed();
         t2 = System.currentTimeMillis();
 
         // itemset finding time
-        System.out.println("TOTAL Itemset Finding Time : " + (t2 - t1) + "ms");
+        //System.out.println("TOTAL Itemset Finding Time : " + (t2 - t1) + "ms");
     }
 
     /**
@@ -191,7 +175,7 @@ public class AlgoDIMDFS {
         try {
             reader = new BufferedReader(new FileReader(input));
         } catch (Exception e) {
-            System.err.println("error: Unable to open input file");
+            System.out.println("error: Unable to open input file");
             System.exit(-1);
         }
         String line;
@@ -218,19 +202,15 @@ public class AlgoDIMDFS {
                 //System.out.println(item);
             }
             // increase the transaction count
-            transactionCount++;
+            //transactionCount++;
+            databaseSize++;
         }
         //System.out.println(mapSupport);
         // close the input file
         reader.close();
     }
 
-    /**
-     * This method finds all frequent ORed itemsets.
-     *
-     * @param minsupp the minimum support threshold.
-     * @param tree original FP tree.
-     */
+      
     private void FPORed() {
 
         //List<Integer> list = new ArrayList<>();
@@ -467,7 +447,7 @@ public class AlgoDIMDFS {
     }
 
     public void processItemset(BitSet currItemset) {
-        int val = FindSupportDFS(currItemset);
+        int val = FindSupport(currItemset);
         //System.out.println("--> " + currItemset.toString() + " val: " + val + " tnr: " + getDatabaseSize());
 
         if (val >= _minsupp) {
@@ -491,7 +471,7 @@ public class AlgoDIMDFS {
         for (BitSet currItemset : itemsets) {
             //List<Integer> currItemset = itemsets.get(i);
 
-            int val = FindSupportDFS(currItemset);
+            int val = FindSupport(currItemset);
             //System.out.println("--> " + currItemset.toString() + " val: " + val + " tnr: " + getDatabaseSize());
 
             if (val >= _minsupp) {
@@ -511,85 +491,29 @@ public class AlgoDIMDFS {
 
     /**
      *
-     * @param list
-     * @return
+     * @param list candidate itemset
+     * @return support of itemset
      */
-    private int FindSupportDFS(BitSet list) {
-        int sumOfSupport = 0;
-        // Mark all the vertices as not visited(By default
-        // set as false)
-        boolean visited[] = new boolean[FPTree.current_node + 1];
-        //Arrays.fill(visited, false);
-        /*for (int i = 0; i < visited.length; ++i) {
-            visited[i] = false;
-        }*/
-
-        // Create a stack for DFS+
-        LinkedList<FPNode> stack = new LinkedList<>();
-        //Stack<FPNode> stack = new Stack<>();
-        // Mark the current node as visited and enqueue it
-        visited[0] = true;
-        //stack.addFirst(tree.root);
-        stack.addAll(0, tree.root.childs);
-        FPNode src;
-        //System.out.print("Reached "+tree.root.nodeID);
-        while (!stack.isEmpty()) {
-            // Dequeue a vertex from queue and print it
-            src = stack.poll();
-            //src = stack.pop();
-            //System.out.print("Dequed "+src+" ");
-
-            // Get all adjacent vertices of the dequeued vertex s
-            // If a adjacent has not been visited, then mark it
-            // visited and enqueue it
-            //stack.addAll(0, adj);
-            /*Collections.sort(adj, new Comparator<FPNode>() {
-                @Override
-                public int compare(FPNode node1, FPNode node2) {
-                    // compare the frequency
-                    int compare = mapSupport.get(node2.itemID) - mapSupport.get(node1.itemID);
-                    // if the same frequency, we check the lexical ordering!
-                    if (compare == 0) {
-                        return (node1.itemID - node2.itemID);
-                    }
-                    // otherwise, just use the frequency
-                    return compare;
-                }
-            });*/
-            //System.out.println("list size: "+src.childs.size());
-            //for (int i = 0; i < adj.size(); i++) {
-            //for(FPNode n: adj){   
-            boolean foundFlag = false;
-            //FPNode n = adj.get(i);
-            //System.out.println("Visited node: "+n.nodeID +" visited: "+visited[n.nodeID]); 
-            if (!visited[src.nodeID]) //n.nodeID != -1 && 
-            {
-                /*for (Integer item : list) {
-                        if (item.equals(n.itemID)) {
-                            sumOfSupport += n.counter;
-                            foundFlag = true;
-                            break;
-                        }
-                    }*/
-
-                if (list.get(src.itemID)) {
-                    //System.out.println("count: "+src.counter+"\nbefore: "+sumOfSupport);
-                    sumOfSupport += src.counter;
-                    //System.out.println("after: "+sumOfSupport);
-                    //stack.addAll(0, src.childs);
-                    foundFlag = true;
-                }
-                if (!foundFlag) {
-                    stack.addAll(0, src.childs);
-
-                }
-                //System.out.println("Visited: "+src.nodeID);
-                visited[src.nodeID] = true;
-
-                //}
-            }
+    private int FindSupport(BitSet list) {
+        BitSet temp = new BitSet(databaseSize);//cloner.deepClone(dT.get(0));
+        for (int k = list.nextSetBit(0); k >= 0; k=list.nextSetBit(k+1)) {
+            temp.or(dT.get(k));
+            //System.out.println(list+" -> "+ temp.toString()+", k:"+k+"-> "+dT.get(k));
         }
-        return sumOfSupport; // (float) getDatabaseSize();
+
+        /*List<Integer> indexes = new ArrayList<>();
+        for (int i = temp.nextSetBit(0); i != -1; i = temp.nextSetBit(i + 1)) {
+            indexes.add(i);
+        }
+        System.out.println(list+" -> "+indexes);*/
+        //return ((float) indexes.size() / getDatabaseSize());
+        //System.out.println(list + " -> " + temp.toString() + "," + temp.cardinality());
+        //return temp.cardinality();
+        /*if (temp.cardinality() >= _minsupp) {
+            return temp;
+        }
+        return null;*/
+        return temp.cardinality();//(float)databaseSize;
     }
 
     /**
@@ -600,5 +524,4 @@ public class AlgoDIMDFS {
     public int getDatabaseSize() {
         return databaseSize;
     }
-
 }
