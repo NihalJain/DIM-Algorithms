@@ -15,6 +15,7 @@ import algorithm.FDIM.MFPImproved.AlgoDIMMFPImproved;
 import algorithm.FDCIM.TidSet.AlgoDCIMTidSet;
 import algorithm.FDCIM.AncestorBitset.AlgoDCIMAncestorBitset;
 import algorithm.FDCIM.BFS.AlgoDCIMBFS;
+import algorithm.FDCIM.DFS.AlgoDCIMDFS;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -241,10 +242,13 @@ public class Algorithm {
                 totalSingles = AlgoDCIMBFS.total_singles;
                 break;
             }
-            /*case 10 : {
-                //DCIM-DFS
+            case 10 : {
+                AlgoDCIMDFS dimAlgo = new AlgoDCIMDFS ();
+                dimAlgo.runAlgorithm(input, minsupp, maxitem);
+                databaseSize = dimAlgo.getDatabaseSize();
+                totalSingles = AlgoDCIMDFS.total_singles;
                 break;
-            }*/
+            }
             case 11: {
                 AlgoDCIMAncestorBitset dimAlgo = new AlgoDCIMAncestorBitset ();
                 dimAlgo.runAlgorithm(input, minsupp, maxitem);
