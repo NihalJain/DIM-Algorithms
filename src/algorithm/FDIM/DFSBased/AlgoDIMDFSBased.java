@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import static java.lang.Math.ceil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -475,7 +476,7 @@ public class AlgoDIMDFSBased {
                 test.Algorithm.frequent_list_set.add(set.toArray(new Integer[currItemset.size()]));
                 test.Algorithm.frequent_list.put(set.toString(), val);*/
                 //prints the freq ored itemsets
-                //System.out.println("--> " + currItemset.toString() + " val: " + val + " tnr: " + getDatabaseSize());
+                //System.out.println("--> " + currItemset.toString() + " val: " + val + " tnr: " + _minsupp);
                 levelItemsets.add(currItemset);
             }
         }

@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import static java.lang.Math.ceil;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
@@ -25,8 +26,7 @@ import org.apache.commons.lang3.tuple.MutablePair;
  * @version 1.0
  */
 public class AlgoDCIMBFS {
-    
-    
+
     // number of transactions in the database
     public static int databaseSize;
     // Hashmap for storing frequencies of each item in dataset
@@ -42,17 +42,17 @@ public class AlgoDCIMBFS {
     Integer preference[];
     int _minsupp;
     int _maxitems;
-    
-     int freqItemsetsCount = 0;
+
+    int freqItemsetsCount = 0;
     // current level under inspection
     private int currLevel = 0;
-    
-    
+
     //HashMap<String, MutablePair<Integer, List<BitSet>>> tidsetTable = new HashMap<>();
     //HashMap<String, MutablePair<Integer, List<BitSet>>> currTidsetTable = new HashMap<>();
     HashMap<Integer, MutablePair<Integer, List<BitSet>>> tidsetTable = new HashMap<>();
     HashMap<Integer, MutablePair<Integer, List<BitSet>>> currTidsetTable = new HashMap<>();
     int closedItemsetsCount = 0;
+
     /**
      * Method to run the FP tree based ORed Itemset generation algorithm.
      *
@@ -93,23 +93,31 @@ public class AlgoDCIMBFS {
             @Override
             public int compare(Integer item1, Integer item2) {
                 // compare the frequency
-                int compare = mapSupport.get(item2) - mapSupport.get(item1);
+                int compare = mapSupport.get(item1) - mapSupport.get(item2);
                 // if the same frequency, we check the lexical ordering!
                 if (compare == 0) {
-                    return (item1 - item2);
+                    return (item2 - item1);
                 }
                 // otherwise, just use the frequency
                 return compare;
             }
         });
+        Integer[] revMap = new Integer[total_singles + 1];
         intKeys = new Integer[X.length];
         for (int tmp = 0; tmp < t.size(); tmp++) {
             intKeys[tmp] = t.get(tmp);
+            //System.out.println("intKeys["+tmp+"] :"+intKeys[tmp]);
+            if (t.get(tmp) != null) {
+                revMap[t.get(tmp)] = tmp;
+                //System.out.println("revMap["+t.get(tmp)+"] :"+revMap[t.get(tmp)]);
+            }
         }
         intKeys = new Integer[mapSupport.size()];
         q = 0;
+
         for (int stringKey : mapSupport.keySet()) {
             intKeys[q] = stringKey;
+            //System.out.println("intKeys["+q+"] :"+intKeys[q]);
             q++;
         }
 
@@ -160,10 +168,16 @@ public class AlgoDCIMBFS {
                     return compare;
                 }
             });
+            List<Integer> newTransaction = new ArrayList<>();
+            for (int i = 0; i < transaction.size(); i++) {
+                newTransaction.add(revMap[transaction.get(i)]);
+            }
+            //System.out.println("Transaction: "+transaction);
+            //System.out.println("NewTransaction: "+newTransaction);
 
             // add the sorted transaction to the fptree.
-            tree.addTransaction(transaction, tID);
-           // increase the transaction count
+            tree.addTransaction(newTransaction, tID);
+            // increase the transaction count
             tID++;
         }
         // close the input file
@@ -172,7 +186,8 @@ public class AlgoDCIMBFS {
         System.out.println("Tree build time : " + (t2 - t1) + "ms");
         t1 = System.currentTimeMillis();
         // calling FPOred function on TREE tree with minsupp.
-        _minsupp = (int)(minsupp*databaseSize);
+        _minsupp = (int) (ceil(minsupp * databaseSize));
+        System.out.println("minsupp:" + _minsupp);
         _maxitems = maxitem;
         FPORed();
         t2 = System.currentTimeMillis();
@@ -229,7 +244,7 @@ public class AlgoDCIMBFS {
         // close the input file
         reader.close();
     }
-     
+
     private void FPORed() {
 
         //List<Integer> list = new ArrayList<>();
@@ -329,7 +344,7 @@ public class AlgoDCIMBFS {
             t2 = System.currentTimeMillis();
             System.out.println("Itemsets PostSort, Time: " + (t2 - t1));*/
             //System.out.println("Level itemsets on EXIT: " + levelItemsets);
-             //for closedCheckOptimized
+            //for closedCheckOptimized
             //System.out.println("B:" + tidsetTable);
             tidsetTable.putAll(currTidsetTable);
             //System.out.println("A:" + tidsetTable);
@@ -342,8 +357,7 @@ public class AlgoDCIMBFS {
         System.out.println("Total candidates " + candidateItemsetsCount);
         System.out.println("Total " + closedItemsetsCount + " frequent ORed CLOSED Itemsets found\nTotal unique TidSets = " + tidsetTable.size());
         System.out.println("Total " + freqItemsetsCount + " frequent ORed Itemsets found.");
-        
-        
+
         /*Iterator closedItemsets = tidsetTable.entrySet().iterator();
         while (closedItemsets.hasNext()) {
             Map.Entry pair = (Map.Entry) closedItemsets.next();
@@ -480,9 +494,9 @@ public class AlgoDCIMBFS {
     }
 
     public void processItemset(BitSet currItemset) {
-        BitSet currTidset= FindSupportBFS(currItemset);
+        BitSet currTidset = FindSupportBFS(currItemset);
         //System.out.println("--> " + currItemset.toString() + " val: " + currTidset.toString() + " tnr: " + getDatabaseSize());
-        
+
         if (currTidset != null) {
             freqItemsetsCount++;
             int hC = currTidset.hashCode();
@@ -508,9 +522,8 @@ public class AlgoDCIMBFS {
             //List<Integer> currItemset = itemsets.get(i);
 
             BitSet currTidset = FindSupportBFS(currItemset);
-            
-            //System.out.println(_minsupp+"--> " + currItemset.toString() + " val: " + val + " tnr: " + getDatabaseSize());
 
+            //System.out.println(_minsupp+"--> " + currItemset.toString() + " val: " + val + " tnr: " + getDatabaseSize());
             if (currTidset != null) {
                 freqItemsetsCount++;
                 int hC = currTidset.hashCode();
@@ -529,8 +542,9 @@ public class AlgoDCIMBFS {
         }
         return levelItemsets;
     }
+
     void checkClosed(BitSet list, int hC) {
-    //void checkClosed(BitSet list, String hC){ { 
+        //void checkClosed(BitSet list, String hC){ { 
         //String hC = temp.toString();//Total 427054 frequent ORed CLOSED Itemsets found, total unique TidSets = 255239:NO-COLLISION
         //int hC = temp.hashCode();   //Total 426994 frequent ORed CLOSED Itemsets found, total unique TidSets = 246577:COLLISION
         //System.out.println("hC: " + hC + " and bitset: " + temp);
@@ -570,7 +584,7 @@ public class AlgoDCIMBFS {
         Set<Integer> tidSet = new HashSet<Integer>();
         // Mark all the vertices as not visited(By default
         // set as false)
-        boolean visited[] = new boolean[FPTree.current_node + 1];
+        //boolean visited[] = new boolean[FPTree.current_node + 1];
         //Arrays.fill(visited, false);
         /*for (int i = 0; i < visited.length; ++i) {
             visited[i] = false;
@@ -580,10 +594,10 @@ public class AlgoDCIMBFS {
         LinkedList<FPNode> queue = new LinkedList<>();
 
         // Mark the current node as visited and enqueue it
-        visited[0] = true;
-        
+        //visited[0] = true;
         queue.add(tree.root);
         FPNode src;
+        int indexOfMin = list.nextSetBit(0);
         //System.out.print("Reached "+tree.root.nodeID);
         while (!queue.isEmpty()) {
             // Dequeue a vertex from queue and print it
@@ -593,7 +607,7 @@ public class AlgoDCIMBFS {
             // Get all adjacent vertices of the dequeued vertex s
             // If a adjacent has not been visited, then mark it
             // visited and enqueue it
-            List<FPNode> adj = src.childs;
+            // List<FPNode> adj = src.childs;
             /*Collections.sort(adj, new Comparator<FPNode>() {
                 @Override
                 public int compare(FPNode node1, FPNode node2) {
@@ -608,23 +622,33 @@ public class AlgoDCIMBFS {
                 }
             });*/
             //System.out.println("list size: "+src.childs.size());
-            for (int i = 0; i < adj.size(); i++) {
+            //for (int i = 0; i < adj.size(); i++) {
             //for(FPNode n: adj){   
-                boolean foundFlag = false;
-                FPNode n = adj.get(i);
+            for (FPNode child : src.childs) {
+                int id = child.itemID;
+                //boolean foundFlag = false;
+                //FPNode n = adj.get(i);
                 //System.out.println("Visited node: "+n.nodeID +" visited: "+visited[n.nodeID]); 
 
-                if (!visited[n.nodeID]) //n.nodeID != -1 && 
-                {
-                    /*for (Integer item : list) {
+                //if (!visited[n.nodeID]) //n.nodeID != -1 && 
+                //{
+                /*for (Integer item : list) {
                         if (item.equals(n.itemID)) {
                             sumOfSupport += n.counter;
                             foundFlag = true;
                             break;
                         }
                     }*/
-
-                    if (list.get(n.itemID)) {
+                if (id >= indexOfMin) {
+                    if (!list.get(id)) {
+                        //visited[child.nodeID] = true;
+                        queue.add(child);
+                    } else {
+                        tidSet.addAll(child.transactionList);
+                        //sumOfSupport += child.counter;
+                    }
+                }
+                /*if (list.get(n.itemID)) {
                          tidSet.addAll(n.transactionList);
                         //sumOfSupport += n.counter;
                         foundFlag = true;
@@ -634,21 +658,21 @@ public class AlgoDCIMBFS {
                     }
                     //System.out.println("Visited: "+n.nodeID);
                     visited[n.nodeID] = true;
-                    queue.add(n);
-                }
+                    queue.add(n);*/
+                //}
             }
         }
         //System.out.println("Sop: "+sumOfSupport+" tset:"+tidSet.size()+"-> "+tidSet);
         if (tidSet.size() >= _minsupp) {
             BitSet tidBitSet = new BitSet(databaseSize + 1);
-            for(Integer tID: tidSet)
+            for (Integer tID : tidSet) {
                 tidBitSet.set(tID);
+            }
             return tidBitSet;
-            
+
         }
         return null;
     }
-
 
     /**
      * Get the number of transactions in the last transaction database read.

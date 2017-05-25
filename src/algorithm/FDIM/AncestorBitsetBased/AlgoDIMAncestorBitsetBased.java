@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import static java.lang.Math.ceil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -147,7 +148,7 @@ public class AlgoDIMAncestorBitsetBased {
                     return compare;
                 }
             });
-
+            System.out.println("Transaction: "+transaction);
             // add the sorted transaction to the fptree.
             tree.addTransaction(transaction);
            // increase the transaction count
@@ -159,7 +160,7 @@ public class AlgoDIMAncestorBitsetBased {
         System.out.println("Tree build time : " + (t2 - t1) + "ms");
         t1 = System.currentTimeMillis();
         // calling FPOred function on TREE tree with minsupp.
-        _minsupp = minsupp * databaseSize;
+        _minsupp = (int)ceil((minsupp * databaseSize));
         _maxitems = maxitems;
         FPORed();
         t2 = System.currentTimeMillis();
@@ -212,7 +213,7 @@ public class AlgoDIMAncestorBitsetBased {
             //transactionCount++;
             databaseSize++;
         }
-        //System.out.println(mapSupport);
+        System.out.println(mapSupport);
         // close the input file
         reader.close();
     }
@@ -330,6 +331,7 @@ public class AlgoDIMAncestorBitsetBased {
         System.out.println("Total candidates " + candidateItemsetsCount); 
         //System.out.println("Total " + pruned_singles + " singles pruned due to infrequency");
         System.out.println("Total " + freqItemsetsCount + " frequent ORed Itemsets found.");
+        System.out.println("c:"+ c);
     }
 
     private boolean checkSeq(List<Integer> itemset, int k) {
@@ -433,7 +435,7 @@ public class AlgoDIMAncestorBitsetBased {
         return subsets;
     }
     public void processItemset(List<Integer> currItemset) {
-        float val = FindSupport(currItemset);
+        int val = FindSupport(currItemset);
         //System.out.println("--> " + currItemset.toString() + " val: " + val + " tnr: " + getDatabaseSize());
 
         if (val >= _minsupp) {
@@ -457,7 +459,7 @@ public class AlgoDIMAncestorBitsetBased {
         for (List<Integer> currItemset : itemsets) {
             //List<Integer> currItemset = itemsets.get(i);
 
-            float val = FindSupport(currItemset);
+            int val = FindSupport(currItemset);
             //System.out.println("--> " + currItemset.toString() + " val: " + val + " tnr: " + getDatabaseSize());
 
             if (val >= _minsupp) {
@@ -480,9 +482,9 @@ public class AlgoDIMAncestorBitsetBased {
      * @param list candidate itemset
      * @return support of itemset
      */
-    private float FindSupport(List<Integer> list) {
-        long sum = 0;
-        
+    private int FindSupport(List<Integer> list) {
+        int sum = 0;
+        //System.out.println("Itemset:"+list);
         for (int k = 0; k < list.size(); k++) {
             
             // find the first/head node of the header list corresponding to item k
@@ -495,7 +497,7 @@ public class AlgoDIMAncestorBitsetBased {
                 X_node = X_node.nodeLink;
             }
         }
-        return ((float) sum / getDatabaseSize());
+        return sum;
     }
 
     /**
@@ -505,15 +507,19 @@ public class AlgoDIMAncestorBitsetBased {
      * @param tree FP-tree
      * @return 1 if exist otherwise 0
      */
+    int c = 0;
     private int Check_path(List<Integer> list, int indexOfItem, FPNode X_node) {
         int result = 0;
         for (int k = 0; k < indexOfItem; k++) {
+            c++;
+            //System.out.println("k:"+k+"->"+list.get(k));
             if (X_node.bitMap.get(list.get(k))) {
-                //System.out.println("Item "+ list.get(k) + " is parent of "+ X_node.nodeID);
+                //System.out.println("Item "+ list.get(k) + " is parent of "+ X_node.itemID);
                 result = 1;
                 break;
             }
         }
+        //System.out.println("Result:"+result);
         return result;
     }
 

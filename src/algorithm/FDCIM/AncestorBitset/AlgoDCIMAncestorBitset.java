@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import static java.lang.Math.ceil;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
@@ -24,8 +25,7 @@ import org.apache.commons.lang3.tuple.MutablePair;
  * @version 1.0
  */
 public class AlgoDCIMAncestorBitset {
-    
-    
+
     // number of transactions in the database
     public static int databaseSize;
     // Hashmap for storing frequencies of each item in dataset
@@ -41,17 +41,17 @@ public class AlgoDCIMAncestorBitset {
     Integer preference[];
     int _minsupp;
     int _maxitems;
-    
-     int freqItemsetsCount = 0;
+
+    int freqItemsetsCount = 0;
     // current level under inspection
     private int currLevel = 0;
-    
-    
+
     //HashMap<String, MutablePair<Integer, List<BitSet>>> tidsetTable = new HashMap<>();
     //HashMap<String, MutablePair<Integer, List<BitSet>>> currTidsetTable = new HashMap<>();
     HashMap<Integer, MutablePair<Integer, List<BitSet>>> tidsetTable = new HashMap<>();
     HashMap<Integer, MutablePair<Integer, List<BitSet>>> currTidsetTable = new HashMap<>();
     int closedItemsetsCount = 0;
+
     /**
      * Method to run the FP tree based ORed Itemset generation algorithm.
      *
@@ -92,23 +92,31 @@ public class AlgoDCIMAncestorBitset {
             @Override
             public int compare(Integer item1, Integer item2) {
                 // compare the frequency
-                int compare = mapSupport.get(item2) - mapSupport.get(item1);
+                int compare = mapSupport.get(item1) - mapSupport.get(item2);
                 // if the same frequency, we check the lexical ordering!
                 if (compare == 0) {
-                    return (item1 - item2);
+                    return (item2 - item1);
                 }
                 // otherwise, just use the frequency
                 return compare;
             }
         });
+        Integer[] revMap = new Integer[total_singles + 1];
         intKeys = new Integer[X.length];
         for (int tmp = 0; tmp < t.size(); tmp++) {
             intKeys[tmp] = t.get(tmp);
+            //System.out.println("intKeys["+tmp+"] :"+intKeys[tmp]);
+            if (t.get(tmp) != null) {
+                revMap[t.get(tmp)] = tmp;
+                //System.out.println("revMap["+t.get(tmp)+"] :"+revMap[t.get(tmp)]);
+            }
         }
         intKeys = new Integer[mapSupport.size()];
         q = 0;
+
         for (int stringKey : mapSupport.keySet()) {
             intKeys[q] = stringKey;
+            //System.out.println("intKeys["+q+"] :"+intKeys[q]);
             q++;
         }
 
@@ -159,10 +167,16 @@ public class AlgoDCIMAncestorBitset {
                     return compare;
                 }
             });
+            List<Integer> newTransaction = new ArrayList<>();
+            for (int i = 0; i < transaction.size(); i++) {
+                newTransaction.add(revMap[transaction.get(i)]);
+            }
+            //System.out.println("Transaction: " + transaction);
+            //System.out.println("NewTransaction: " + newTransaction);
 
             // add the sorted transaction to the fptree.
-            tree.addTransaction(transaction, tID);
-           // increase the transaction count
+            tree.addTransaction(newTransaction, tID);
+            // increase the transaction count
             tID++;
         }
         // close the input file
@@ -170,8 +184,8 @@ public class AlgoDCIMAncestorBitset {
         t2 = System.currentTimeMillis();
         System.out.println("Tree build time : " + (t2 - t1) + "ms");
         t1 = System.currentTimeMillis();
-        // calling FPOred function on TREE tree with minsupp.
-        _minsupp = (int)(minsupp*databaseSize);
+        _minsupp = (int) ceil((minsupp * databaseSize));
+        System.out.println("minsupp:" + _minsupp);
         _maxitems = maxitem;
         FPORed();
         t2 = System.currentTimeMillis();
@@ -228,7 +242,7 @@ public class AlgoDCIMAncestorBitset {
         // close the input file
         reader.close();
     }
-     
+
     private void FPORed() {
 
         //List<Integer> list = new ArrayList<>();
@@ -328,9 +342,9 @@ public class AlgoDCIMAncestorBitset {
             t2 = System.currentTimeMillis();
             System.out.println("Itemsets PostSort, Time: " + (t2 - t1));*/
             //System.out.println("Level itemsets on EXIT: " + levelItemsets);
-             //for closedCheckOptimized
+            //for closedCheckOptimized
             //System.out.println("B:" + tidsetTable);
-           tidsetTable.putAll(currTidsetTable);
+            tidsetTable.putAll(currTidsetTable);
             //System.out.println("A:" + tidsetTable);
             currTidsetTable = new HashMap<>();
             ++currLevel;
@@ -341,8 +355,7 @@ public class AlgoDCIMAncestorBitset {
         System.out.println("Total candidates " + candidateItemsetsCount);
         System.out.println("Total " + closedItemsetsCount + " frequent ORed CLOSED Itemsets found\nTotal unique TidSets = " + tidsetTable.size());
         System.out.println("Total " + freqItemsetsCount + " frequent ORed Itemsets found.");
-        
-        
+//        System.out.println("c:" + c);
         /*Iterator closedItemsets = tidsetTable.entrySet().iterator();
         while (closedItemsets.hasNext()) {
             Map.Entry pair = (Map.Entry) closedItemsets.next();
@@ -479,9 +492,9 @@ public class AlgoDCIMAncestorBitset {
     }
 
     public void processItemset(BitSet currItemset) {
-        BitSet currTidset= FindSupport(currItemset);
+        BitSet currTidset = FindSupport(currItemset);
         //System.out.println("--> " + currItemset.toString() + " val: " + currTidset.toString() + " tnr: " + getDatabaseSize());
-        
+
         if (currTidset != null) {
             freqItemsetsCount++;
             int hC = currTidset.hashCode();
@@ -494,7 +507,7 @@ public class AlgoDCIMAncestorBitset {
                 test.Algorithm.frequent_list_set.add(set.toArray(new Integer[currItemset.size()]));
                 test.Algorithm.frequent_list.put(set.toString(), val);*/
             //prints the freq ored itemsets
-            //System.out.println("--> " + currItemset.toString() + " val: " + val + " tnr: " + getDatabaseSize());
+            //System.out.println("--> " + currItemset.toString() + " val: " + currTidset.cardinality() + " tnr: " + getDatabaseSize());
 
         }
 
@@ -507,9 +520,8 @@ public class AlgoDCIMAncestorBitset {
             //List<Integer> currItemset = itemsets.get(i);
 
             BitSet currTidset = FindSupport(currItemset);
-            
-            //System.out.println(_minsupp+"--> " + currItemset.toString() + " val: " + val + " tnr: " + getDatabaseSize());
 
+            //System.out.println(_minsupp+"--> " + currItemset.toString() + " val: " + val + " tnr: " + getDatabaseSize());
             if (currTidset != null) {
                 freqItemsetsCount++;
                 int hC = currTidset.hashCode();
@@ -522,14 +534,15 @@ public class AlgoDCIMAncestorBitset {
                 test.Algorithm.frequent_list_set.add(set.toArray(new Integer[currItemset.size()]));
                 test.Algorithm.frequent_list.put(set.toString(), val);*/
                 //prints the freq ored itemsets
-                //System.out.println("--> " + currItemset.toString() + " val: " + val + " tnr: " + getDatabaseSize());
+                //System.out.println("--> " + currItemset.toString() + " val: " + currTidset.cardinality() + " tnr: " + getDatabaseSize());
                 levelItemsets.add(currItemset);
             }
         }
         return levelItemsets;
     }
+
     void checkClosed(BitSet list, int hC) {
-    //void checkClosed(BitSet list, String hC){ { 
+        //void checkClosed(BitSet list, String hC){ { 
         //String hC = temp.toString();//Total 427054 frequent ORed CLOSED Itemsets found, total unique TidSets = 255239:NO-COLLISION
         //int hC = temp.hashCode();   //Total 426994 frequent ORed CLOSED Itemsets found, total unique TidSets = 246577:COLLISION
         //System.out.println("hC: " + hC + " and bitset: " + temp);
@@ -566,12 +579,19 @@ public class AlgoDCIMAncestorBitset {
      */
     private BitSet FindSupport(BitSet list) {
         //int sum = 0;
-         Set<Integer> tidSet = new HashSet<Integer>();
-        for (int k = list.nextSetBit(0); k >= 0 ; k = list.nextSetBit(k+1) ) {
+        Set<Integer> tidSet = new HashSet<Integer>();
+        //System.out.println("Itemset:" + list);
+        int last = list.previousSetBit(list.size());
+        FPNode first_node = tree.mapItemNodes.get(last);
+        while (first_node != null) {
+            tidSet.addAll(first_node.transactionList);
+            first_node = first_node.nodeLink;
+        }
+        for (int k = list.previousSetBit(last - 1); k >= 0; k = list.previousSetBit(k - 1)) {
+            //for (int k = list.nextSetBit(0); k >= 0; k = list.nextSetBit(k + 1)) {
             /*if (k == Integer.MAX_VALUE) {
          break; // or (k+1) would overflow
             }*/
-            //System.out.println("Here");
             // find the first/head node of the header list corresponding to item k
             FPNode X_node = tree.mapItemNodes.get(k);
             while (X_node != null) {
@@ -585,13 +605,16 @@ public class AlgoDCIMAncestorBitset {
         //System.out.println("Sop: "+sum+" tset:"+tidSet.size()+"-> "+tidSet);
         if (tidSet.size() >= _minsupp) {
             BitSet tidBitSet = new BitSet(databaseSize + 1);
-            for(Integer tID: tidSet)
+            for (Integer tID : tidSet) {
                 tidBitSet.set(tID);
+            }
             return tidBitSet;
-            
+
         }
         return null;
     }
+    
+    int c = 0;
 
     /**
      * @param list candidate itemset
@@ -602,14 +625,26 @@ public class AlgoDCIMAncestorBitset {
      */
     private boolean Check_path(BitSet list, int indexOfItem, FPNode X_node) {
         boolean result = false;
-        for (int k = list.nextSetBit(0); k < indexOfItem; k = list.nextSetBit(k+1)) {
-            
+        //System.out.println("Agaiin");
+        //for (int k = list.previousSetBit(list.size()); k >= indexOfItem; k = list.previousSetBit(k - 1)) {
+        for (int k = list.nextSetBit(indexOfItem + 1); k >= 0; k = list.nextSetBit(k + 1)) {
+            //c++;
+            // operate on index i here
             if (X_node.bitMap.get(k)) {
-                //System.out.println("Item "+ list.get(k) + " is parent of "+ X_node.nodeID);
+                //System.out.println("Item "+ k + " is parent of "+ X_node.itemID);
                 result = true;
                 break;
             }
         }
+        /*for (int k = list.nextSetBit(0); k < indexOfItem; k = list.nextSetBit(k+1)) {
+           System.out.println("k:"+k+"->"+list.get(k));
+            if (X_node.bitMap.get(k)) {
+                System.out.println("Item "+ list.get(k) + " is parent of "+ X_node.nodeID);
+                result = true;
+                break;
+            }
+        }*/
+        //System.out.println("Result:" + result);
         return result;
     }
 

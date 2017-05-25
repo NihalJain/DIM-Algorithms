@@ -67,7 +67,7 @@ public class Algorithm {
         try {
             input = args[1]; //jar mode
             //System.out.println(input);
-            input = fileToPath(args[1]); //use this for IDE(testing)
+            //input = fileToPath(args[1]); //use this for IDE(testing)
         } catch (Exception e) {
             System.out.println("error: Input file not found.");
             System.exit(-1);
@@ -269,17 +269,7 @@ public class Algorithm {
                 dimAlgo.runAlgorithm(input, minsupp, maxsupp, maxitem);
                 databaseSize = dimAlgo.getDatabaseSize();
                 totalSingles = AlgoDIMFPOR.total_singles;
-                break;            /*case 4: {
-                AlgoDIMFPOR dimAlgo = new AlgoDIMFPOR();
-                dimAlgo.runAlgorithm(input, minsupp, maxsupp, maxitem);
-                databaseSize = dimAlgo.getDatabaseSize();
-                totalSingles = AlgoDIMFPOR.total_singles;
-                break;            /*case 4: {
-                AlgoDIMFPOR dimAlgo = new AlgoDIMFPOR();
-                dimAlgo.runAlgorithm(input, minsupp, maxsupp, maxitem);
-                databaseSize = dimAlgo.getDatabaseSize();
-                totalSingles = AlgoDIMFPOR.total_singles;
-                break;
+                break;            
             }*/
 
             default: {
@@ -296,7 +286,7 @@ public class Algorithm {
         // summarizing results
         System.out.println("----------------------------------------------------------------------");
         System.out.println("DATABASE SIZE " + databaseSize + " Total items : " + totalSingles);
-        System.out.println("Elapsed milliseconds (Preprocessing): " + (parseEnd - parseStart));
+        //System.out.println("Elapsed milliseconds (Preprocessing): " + (parseEnd - parseStart));
         System.out.println("Elapsed milliseconds ( FPTree + ORed Itemsets): " + (lEndTime - lStartTime));
         System.out.println("Elapsed milliseconds (Total time => Preprocessing + ORed itemsets): " + (lEndTime - parseStart));
 

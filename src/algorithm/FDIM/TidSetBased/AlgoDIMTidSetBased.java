@@ -5,6 +5,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import static java.lang.Math.ceil;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
@@ -163,7 +164,7 @@ public class AlgoDIMTidSetBased {
         System.out.println("Tree build time : " + (t2 - t1) + "ms");
         t1 = System.currentTimeMillis();
         // calling FPOred function on TREE tree with minsupp.
-        _minsupp = (int)(minsupp*databaseSize);
+        _minsupp = (int)ceil((minsupp * databaseSize));
         _maxitems = maxitem;
         FPORed();
         t2 = System.currentTimeMillis();
@@ -442,7 +443,7 @@ public class AlgoDIMTidSetBased {
                 test.Algorithm.frequent_list_set.add(set.toArray(new Integer[currItemset.size()]));
                 test.Algorithm.frequent_list.put(set.toString(), val);*/
                 //prints the freq ored itemsets
-                //System.out.println("--> " + currItemset.toString() + " val: " + val + " tnr: " + getDatabaseSize());
+                //System.out.println("--> " + currItemset.toString() + " val: " + val + " tnr: " + _minsupp);
                 levelItemsets.add(currItemset);
             }
         }

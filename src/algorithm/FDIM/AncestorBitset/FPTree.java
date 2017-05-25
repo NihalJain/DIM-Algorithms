@@ -39,7 +39,6 @@ public class FPTree {
      */
     public void addTransaction(List<Integer> transaction) {
         FPNode currentNode = root;
-
         boolean flag = false;
         FPNode last = null;
         // For each item in the transaction
@@ -51,7 +50,7 @@ public class FPTree {
                 // there is no node, we create a new one
                 FPNode newNode = new FPNode();
                 newNode.itemID = item;
-
+                
                 newNode.nodeID = current_node;
                 current_node++;
                 //System.out.println("current_node: "+current_node+" item: "+item+" nodeID: "+newNode.nodeID);
@@ -85,10 +84,11 @@ public class FPTree {
                 }
             } else {
                 //or the contents with the parent's bitMap
+                //currentNode.itemID = item;
                 if (currentNode != root) {
                     child.bitMap.or(currentNode.bitMap);
                 }
-
+               
                 // there is a node already, we update it
                 child.counter++;
                 //child.nodeID = currentNode.nodeID;

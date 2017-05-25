@@ -5,6 +5,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import static java.lang.Math.ceil;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
@@ -90,23 +91,31 @@ public class AlgoDCIMTidSet {
             @Override
             public int compare(Integer item1, Integer item2) {
                 // compare the frequency
-                int compare = mapSupport.get(item2) - mapSupport.get(item1);
+                int compare = mapSupport.get(item1) - mapSupport.get(item2);
                 // if the same frequency, we check the lexical ordering!
                 if (compare == 0) {
-                    return (item1 - item2);
+                    return (item2 - item1);
                 }
                 // otherwise, just use the frequency
                 return compare;
             }
         });
+        Integer[] revMap = new Integer[total_singles + 1];
         intKeys = new Integer[X.length];
         for (int tmp = 0; tmp < t.size(); tmp++) {
             intKeys[tmp] = t.get(tmp);
+            //System.out.println("intKeys["+tmp+"] :"+intKeys[tmp]);
+            if (t.get(tmp) != null) {
+                revMap[t.get(tmp)] = tmp;
+                //System.out.println("revMap["+t.get(tmp)+"] :"+revMap[t.get(tmp)]);
+            }
         }
         intKeys = new Integer[mapSupport.size()];
         q = 0;
+
         for (int stringKey : mapSupport.keySet()) {
             intKeys[q] = stringKey;
+            //System.out.println("intKeys["+q+"] :"+intKeys[q]);
             q++;
         }
 
@@ -137,13 +146,13 @@ public class AlgoDCIMTidSet {
             }
             // Tokenizing input line
             StringTokenizer lineSplited = new StringTokenizer(line);
-            List<Integer> transaction = new ArrayList<>();
+           //List<Integer> transaction = new ArrayList<>();
             // for each item in the transaction
             while (lineSplited.hasMoreElements()) {
                 Integer item = Integer.parseInt(lineSplited.nextToken());
-                dT.get(item).set(tID);
+                dT.get(revMap[item]).set(tID);
             }
-
+            
             // increase the transaction count
             tID++;
         }
@@ -152,8 +161,8 @@ public class AlgoDCIMTidSet {
         t2 = System.currentTimeMillis();
         System.out.println("Tree build time : " + (t2 - t1) + "ms");
         //t1 = System.currentTimeMillis();
-        // calling FPOred function on TREE tree with minsupp.
-        _minsupp = (int)(minsupp * databaseSize);
+        _minsupp = (int)ceil((minsupp * databaseSize));
+        System.out.println("minsupp:" + _minsupp);
         _maxitems = maxitems;
         FPORed();
         //t2 = System.currentTimeMillis();

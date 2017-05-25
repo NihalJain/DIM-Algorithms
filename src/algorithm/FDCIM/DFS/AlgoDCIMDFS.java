@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import static java.lang.Math.ceil;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
@@ -93,23 +94,31 @@ public class AlgoDCIMDFS {
             @Override
             public int compare(Integer item1, Integer item2) {
                 // compare the frequency
-                int compare = mapSupport.get(item2) - mapSupport.get(item1);
+                int compare = mapSupport.get(item1) - mapSupport.get(item2);
                 // if the same frequency, we check the lexical ordering!
                 if (compare == 0) {
-                    return (item1 - item2);
+                    return (item2 - item1);
                 }
                 // otherwise, just use the frequency
                 return compare;
             }
         });
+        Integer[] revMap = new Integer[total_singles + 1];
         intKeys = new Integer[X.length];
         for (int tmp = 0; tmp < t.size(); tmp++) {
             intKeys[tmp] = t.get(tmp);
+            //System.out.println("intKeys["+tmp+"] :"+intKeys[tmp]);
+            if (t.get(tmp) != null) {
+                revMap[t.get(tmp)] = tmp;
+                //System.out.println("revMap["+t.get(tmp)+"] :"+revMap[t.get(tmp)]);
+            }
         }
         intKeys = new Integer[mapSupport.size()];
         q = 0;
+
         for (int stringKey : mapSupport.keySet()) {
             intKeys[q] = stringKey;
+            //System.out.println("intKeys["+q+"] :"+intKeys[q]);
             q++;
         }
 
@@ -160,9 +169,15 @@ public class AlgoDCIMDFS {
                     return compare;
                 }
             });
+             List<Integer> newTransaction = new ArrayList<>();
+            for (int i = 0; i < transaction.size(); i++) {
+                newTransaction.add(revMap[transaction.get(i)]);
+            }
+            //System.out.println("Transaction: "+transaction);
+            //System.out.println("NewTransaction: "+newTransaction);
 
             // add the sorted transaction to the fptree.
-            tree.addTransaction(transaction, tID);
+            tree.addTransaction(newTransaction, tID);
            // increase the transaction count
             tID++;
         }
@@ -170,9 +185,9 @@ public class AlgoDCIMDFS {
         reader.close();
         t2 = System.currentTimeMillis();
         System.out.println("Tree build time : " + (t2 - t1) + "ms");
-        t1 = System.currentTimeMillis();
-        // calling FPOred function on TREE tree with minsupp.
-        _minsupp = (int)(minsupp*databaseSize);
+        t1 = System.currentTimeMillis();        // calling FPOred function on TREE tree with minsupp.
+        _minsupp = (int) (ceil(minsupp * databaseSize));
+        System.out.println("minsupp:" + _minsupp);
         _maxitems = maxitem;
         FPORed();
         t2 = System.currentTimeMillis();
@@ -570,7 +585,7 @@ public class AlgoDCIMDFS {
          Set<Integer> tidSet = new HashSet<Integer>();
         // Mark all the vertices as not visited(By default
         // set as false)
-        boolean visited[] = new boolean[FPTree.current_node + 1];
+        //boolean visited[] = new boolean[FPTree.current_node + 1];
         //Arrays.fill(visited, false);
         /*for (int i = 0; i < visited.length; ++i) {
             visited[i] = false;
@@ -578,11 +593,24 @@ public class AlgoDCIMDFS {
 
         // Create a stack for DFS+
         LinkedList<FPNode> stack = new LinkedList<>();
+         int indexOfMin = list.nextSetBit(0);
         //Stack<FPNode> stack = new Stack<>();
         // Mark the current node as visited and enqueue it
-        visited[0] = true;
+        //visited[0] = true;
         //stack.addFirst(tree.root);
-        stack.addAll(0, tree.root.childs);
+        for (FPNode child : tree.root.childs) {
+            int id = child.itemID;
+            if (id >= indexOfMin) {
+                if (!list.get(id)) {
+                    stack.add(child);
+                } else {
+                    //visited[child.nodeID] = true;
+                    //sumOfSupport += child.counter;
+                     tidSet.addAll(child.transactionList);
+                }
+            }
+        }
+        //stack.addAll(0, tree.root.childs);
         FPNode src;
         //System.out.print("Reached "+tree.root.nodeID);
         while (!stack.isEmpty()) {
@@ -611,11 +639,11 @@ public class AlgoDCIMDFS {
             //System.out.println("list size: "+src.childs.size());
             //for (int i = 0; i < adj.size(); i++) {
             //for(FPNode n: adj){   
-            boolean foundFlag = false;
+            //boolean foundFlag = false;
             //FPNode n = adj.get(i);
             //System.out.println("Visited node: "+n.nodeID +" visited: "+visited[n.nodeID]); 
-            if (!visited[src.nodeID]) //n.nodeID != -1 && 
-            {
+            //if (!visited[src.nodeID]) //n.nodeID != -1 && 
+            //{
                 /*for (Integer item : list) {
                         if (item.equals(n.itemID)) {
                             sumOfSupport += n.counter;
@@ -630,17 +658,31 @@ public class AlgoDCIMDFS {
                     //sumOfSupport += src.counter;
                     //System.out.println("after: "+sumOfSupport);
                     //stack.addAll(0, src.childs);
-                    foundFlag = true;
+                    //foundFlag = true;
                 }
-                if (!foundFlag) {
-                    stack.addAll(0, src.childs);
+                else
+                //if (!foundFlag) 
+                {
+                    for (FPNode child : src.childs) {
+                        int id = child.itemID;
+                        if (id >= indexOfMin) {
+                            if (!list.get(id)) {
+                                stack.add(child);
+                            } else {
+                                tidSet.addAll(child.transactionList);
+                                //visited[child.nodeID] = true;
+                                //sumOfSupport += child.counter;
+                            }
+                        }
+                    }
+                    // stack.addAll(0, src.childs);
 
                 }
                 //System.out.println("Visited: "+src.nodeID);
-                visited[src.nodeID] = true;
+                //visited[src.nodeID] = true;
 
                 //}
-            }
+            //}
         }
         //System.out.println("Sop: "+sumOfSupport+" tset:"+tidSet.size()+"-> "+tidSet);
         if (tidSet.size() >= _minsupp) {
