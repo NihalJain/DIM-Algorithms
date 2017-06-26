@@ -17,6 +17,12 @@ import algorithm.FDCIM.AncestorBitset.AlgoDCIMAncestorBitset;
 import algorithm.FDCIM.BFS.AlgoDCIMBFS;
 import algorithm.FDCIM.DFS.AlgoDCIMDFS;
 
+import algorithm.CIM.AncestorBitset.AlgoCIMAncestorBitset;
+import ca.pfv.spmf.algorithms.frequentpatterns.eclat.AlgoEclat;
+import ca.pfv.spmf.algorithms.frequentpatterns.fpgrowth.AlgoFPGrowth;
+import ca.pfv.spmf.input.transaction_database_list_integers.TransactionDatabase;
+import ca.pfv.spmf.patterns.itemset_array_integers_with_count.Itemsets;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -67,7 +73,7 @@ public class Algorithm {
         try {
             input = args[1]; //jar mode
             //System.out.println(input);
-            //input = fileToPath(args[1]); //use this for IDE(testing)
+            input = fileToPath(args[1]); //use this for IDE(testing)
         } catch (Exception e) {
             System.out.println("error: Input file not found.");
             System.exit(-1);
@@ -107,7 +113,7 @@ public class Algorithm {
         // preprocess dataset
         long parseStart = System.currentTimeMillis();
         ParseDataset parse = new ParseDataset();
-        input = parse.ParseData(input);
+        //input = parse.ParseData(input);
         parsed = 1;
         long parseEnd = System.currentTimeMillis();
 
@@ -150,7 +156,10 @@ public class Algorithm {
             case 12:
                 System.out.println("                        DCIM TidSet (bitset) ALGORITHM");
                 break;
-             
+            case 13:
+                System.out.println("                        CIM AncestorBitet (bitset) ALGORITHM");
+                break;
+            
             default:
                 System.out.println("                       DIM MFP-Improved");
                 break;
@@ -262,6 +271,60 @@ public class Algorithm {
                 dimAlgo.runAlgorithm(input, minsupp, maxitem);
                 databaseSize = dimAlgo.getDatabaseSize();
                 totalSingles = AlgoDCIMTidSet.total_singles;
+                break;
+            }
+            
+            case 13: {
+                input = fileToPath(args[1]);
+                AlgoCIMAncestorBitset cimAlgo = new AlgoCIMAncestorBitset();
+                cimAlgo.runAlgorithm(input, null, minsupp);
+                cimAlgo.printStats();
+                databaseSize = 0;
+                totalSingles = 0;
+                break;
+            }
+            case 14:{
+                TransactionDatabase database = new TransactionDatabase();
+		try {
+			database.loadFile(fileToPath(args[1]));
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+//		context.printContext();
+		
+		// Applying the ECLAT algorithm
+		AlgoEclat algo = new AlgoEclat();
+		Itemsets patterns = algo.runAlgorithm(null, database, minsupp, true);
+		// NOTE 0: We use "null" as output file path, because in this
+		// example, we want to save the result to memory instead of
+		// saving to a file
+		
+		// NOTE 1: if you  use "true" in the line above, CHARM will use
+		// a triangular matrix  for counting support of itemsets of size 2.
+		// For some datasets it should make the algorithm faster.
+		
+		//patterns.printItemsets(database.size());
+		algo.printStats();
+                 databaseSize = 0;
+                totalSingles = 0;
+                break;
+            }
+            case 15:{
+                input = fileToPath(args[1]);
+
+		// Applying the FPGROWTH algorithmMainTestFPGrowth.java
+		AlgoFPGrowth algo = new AlgoFPGrowth();
+		// Run the algorithm
+		// Note that here we use "null" as output file path because we want to keep the results into memory instead of saving to a file
+		Itemsets patterns = algo.runAlgorithm(input, null, minsupp);  
+		// show the execution time and other statistics
+		algo.printStats();
+		// print the patterns to System.out
+		patterns.printItemsets(algo.getDatabaseSize());
+                databaseSize = 0;
+                totalSingles = 0;
                 break;
             }
             /*case 4: {
