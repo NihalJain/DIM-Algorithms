@@ -1,6 +1,5 @@
 package algorithm.CIM.AncestorBitset;
 
-import algorithm.FDIM.AncestorBitset.*;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
@@ -16,11 +15,11 @@ public class FPNode {
     int itemID = -1; // item id
     int counter = 1; // frequency counter
     // the parent node of that node or null if it is the root
-    FPNode parent = null;
+    //FPNode parent = null;
     // the child nodes of that node
     List<FPNode> childs = new ArrayList<>();
     FPNode nodeLink = null; // link to next node with the same item id (for the header table).
-    List<Integer> branches = new ArrayList<>();
+    //List<Integer> branches = new ArrayList<>();
     BitSet bitMap;
 
     /**

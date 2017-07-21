@@ -1,6 +1,6 @@
 package algorithm.CIM.AncestorBitset;
 
-import algorithm.FDIM.AncestorBitset.*;
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.List;
@@ -15,7 +15,7 @@ import java.util.Map;
 public class FPTree {
 
     // List of pairs (item, frequency) of the header table
-    Map<Integer, FPNode> mapItemNodes = new HashMap<>();
+    Map<Integer, List<FPNode>> mapItemNodes = new HashMap<>();
     // root of the tree
     FPNode root = new FPNode(); // null node
     int current_branch = 0;
@@ -41,13 +41,13 @@ public class FPTree {
     public void addTransaction(List<Integer> transaction) {
         FPNode currentNode = root;
         boolean flag = false;
-        FPNode last = null;
+        //FPNode last = null;
         // For each item in the transaction
         for (Integer item : transaction) {
             // look if there is a node already in the FP-Tree
             FPNode child = currentNode.getChildWithID(item);
             if (child == null) {
-                flag = true;
+                //flag = true;
                 // there is no node, we create a new one
                 FPNode newNode = new FPNode();
                 newNode.itemID = item;
@@ -72,7 +72,7 @@ public class FPTree {
 
                 // We update the header table.
                 // We check if there is already a node with this id in the header table
-                FPNode headernode = mapItemNodes.get(item);
+                /*FPNode headernode = mapItemNodes.get(item);
                 if (headernode == null) { // there is not
                     mapItemNodes.put(item, newNode);
                 } else { // there is
@@ -82,7 +82,20 @@ public class FPTree {
                     }
                     headernode.nodeLink = newNode;
                     last = newNode;
+                }*/
+                
+
+                if (!mapItemNodes.containsKey(item)) { // there is not
+                    List<FPNode> nodelist = new ArrayList<>();
+                    nodelist.add(newNode);
+                    mapItemNodes.put(item, nodelist);
                 }
+                else{
+                    mapItemNodes.get(item).add(newNode);
+                }
+                    //last = newNode;
+                    
+                                
             } else {
                 //or the contents with the parent's bitMap
                 //currentNode.itemID = item;
@@ -93,16 +106,16 @@ public class FPTree {
                 // there is a node already, we update it
                 child.counter++;
                 //child.nodeID = currentNode.nodeID;
-                last = child;
+                //last = child;
                 currentNode = child;
             }
         }
-        if (flag) {
+        /*if (flag) {
             while (last != null) {
                 last.branches.add(current_branch);
                 last = last.parent;
             }
             current_branch++;
-        }
+        }*/
     }
 }

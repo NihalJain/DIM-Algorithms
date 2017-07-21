@@ -19,7 +19,8 @@ import algorithm.FDCIM.DFS.AlgoDCIMDFS;
 
 import algorithm.CIM.AncestorBitset.AlgoCIMAncestorBitset;
 import ca.pfv.spmf.algorithms.frequentpatterns.eclat.AlgoEclat;
-import ca.pfv.spmf.algorithms.frequentpatterns.fpgrowth.AlgoFPGrowth;
+import algorithm.CIM.FPGrowth.AlgoFPGrowth;
+import algorithm.FDCIM.TidSetPS.AlgoDCIMTidSetPS;
 import ca.pfv.spmf.input.transaction_database_list_integers.TransactionDatabase;
 import ca.pfv.spmf.patterns.itemset_array_integers_with_count.Itemsets;
 
@@ -73,7 +74,7 @@ public class Algorithm {
         try {
             input = args[1]; //jar mode
             //System.out.println(input);
-            input = fileToPath(args[1]); //use this for IDE(testing)
+            //input = fileToPath(args[1]); //use this for IDE(testing)
         } catch (Exception e) {
             System.out.println("error: Input file not found.");
             System.exit(-1);
@@ -113,7 +114,7 @@ public class Algorithm {
         // preprocess dataset
         long parseStart = System.currentTimeMillis();
         ParseDataset parse = new ParseDataset();
-        //input = parse.ParseData(input);
+        input = parse.ParseData(input);
         parsed = 1;
         long parseEnd = System.currentTimeMillis();
 
@@ -179,6 +180,13 @@ public class Algorithm {
 
         //run the chosen algorithm
         switch (whichAlgo) {
+            case 0: {
+                AlgoDCIMTidSetPS dimAlgo = new AlgoDCIMTidSetPS();
+                dimAlgo.runAlgorithm(input, minsupp, maxitem);
+                databaseSize = dimAlgo.getDatabaseSize();
+                totalSingles = AlgoDCIMTidSetPS.total_singles;
+                break;
+            }
             case 1: {
                 AlgoDIMBFSBased dimAlgo = new AlgoDIMBFSBased();
                 dimAlgo.runAlgorithm(input, minsupp, maxitem);
@@ -276,6 +284,7 @@ public class Algorithm {
             
             case 13: {
                 input = fileToPath(args[1]);
+                //input = args[1];
                 AlgoCIMAncestorBitset cimAlgo = new AlgoCIMAncestorBitset();
                 cimAlgo.runAlgorithm(input, null, minsupp);
                 cimAlgo.printStats();
@@ -286,7 +295,8 @@ public class Algorithm {
             case 14:{
                 TransactionDatabase database = new TransactionDatabase();
 		try {
-			database.loadFile(fileToPath(args[1]));
+			//database.loadFile(fileToPath(args[1]));
+                        database.loadFile(args[1]);
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -313,7 +323,7 @@ public class Algorithm {
             }
             case 15:{
                 input = fileToPath(args[1]);
-
+                //input = args[1];
 		// Applying the FPGROWTH algorithmMainTestFPGrowth.java
 		AlgoFPGrowth algo = new AlgoFPGrowth();
 		// Run the algorithm
@@ -322,7 +332,7 @@ public class Algorithm {
 		// show the execution time and other statistics
 		algo.printStats();
 		// print the patterns to System.out
-		patterns.printItemsets(algo.getDatabaseSize());
+		//patterns.printItemsets(algo.getDatabaseSize());
                 databaseSize = 0;
                 totalSingles = 0;
                 break;

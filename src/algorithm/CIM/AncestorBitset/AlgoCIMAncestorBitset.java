@@ -21,6 +21,7 @@ import ca.pfv.spmf.patterns.itemset_array_integers_with_tids.Itemset;
 import ca.pfv.spmf.patterns.itemset_array_integers_with_tids.Itemsets;
 import ca.pfv.spmf.tools.MemoryLogger;
 import java.io.FileNotFoundException;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.StringTokenizer;
 
@@ -171,12 +172,14 @@ public class AlgoCIMAncestorBitset {
             intKeys[q] = stringKey;
             q++;
         }*/
-        Integer[] revMap = new Integer[total_singles + 100];
+        Integer[] revMap = new Integer[total_singles+10000];
+        //Arrays.fill(revMap, 1);
         intKeys = new Integer[X.length];
         for (int tmp = 0; tmp < t.size(); tmp++) {
             intKeys[tmp] = t.get(tmp);
             //System.out.println("intKeys["+tmp+"] :"+intKeys[tmp]);
             if (t.get(tmp) != null) {
+                //System.out.println("r"+revMap.length);
                 revMap[t.get(tmp)] = tmp+1;
                 //System.out.println("revMap["+t.get(tmp)+"] :"+revMap[t.get(tmp)]);
             }
@@ -254,6 +257,11 @@ public class AlgoCIMAncestorBitset {
 		}
                 //System.out.println("tset:"+mapItemTIDS);
                 
+                
+                // convert the support from a relative minimum support (%) to an 
+		// absolute minimum support
+		this.minSuppRelative = (int) Math.ceil(minsup * databaseSize);
+                
                 // (2) Scan the database again to build the initial FP-Tree
         // Before inserting a transaction in the FPTree, we sort the items
         // by descending order of support. We ignore items that
@@ -278,7 +286,7 @@ public class AlgoCIMAncestorBitset {
             }
             // Tokenizing input line
             StringTokenizer lineSplited = new StringTokenizer(line);
-            List<Integer> atransaction = new ArrayList<>();
+            //List<Integer> atransaction = new ArrayList<>();
             
             List<Integer> transaction = new ArrayList<>();
             // for each item in the transaction
@@ -287,13 +295,16 @@ public class AlgoCIMAncestorBitset {
                 // only add items that have the minimum support
                 // if(!transaction.contains(item))
   //              atransaction.add(item);
-                transaction.add(revMap[item]);
+                if (mapItemTIDS.get(revMap[item]).size() >= minSuppRelative)
+                    transaction.add(revMap[item]);
             }
             
 //System.out.println("ATransaction: "+atransaction);
-//System.out.println("Transaction: "+transaction);
+//System.out.println("BTransaction: "+transaction);
             // sort item in the transaction by descending order of support
-            Collections.sort(transaction);/*, new Comparator<Integer>() {
+            Collections.sort(transaction);
+            Collections.reverse(transaction);
+            /*, new Comparator<Integer>() {
                 @Override
                 public int compare(Integer item1, Integer item2) {
                     // compare the frequency
@@ -306,7 +317,7 @@ public class AlgoCIMAncestorBitset {
                     return compare;
                 }
             });*/
-          //  System.out.println("Transaction: "+transaction);
+            //System.out.println("ATransaction: "+transaction);
             // add the sorted transaction to the fptree.
             tree.addTransaction(transaction);
            // increase the transaction count
@@ -580,7 +591,7 @@ public class AlgoCIMAncestorBitset {
             //transactionCount++;
             databaseSize++;
         }
-        System.out.println(mapSupport);
+        //System.out.println(mapSupport);
         // close the input file
         reader.close();
     }
@@ -592,20 +603,22 @@ public class AlgoCIMAncestorBitset {
     private int FindSupport(BitSet list) {
         int sum = 0;
         //System.out.println("Itemset:" + list);
-        int k = list.previousSetBit(list.size());
+        //int k = list.previousSetBit(list.size());
+        int k = list.nextSetBit(0);
         //System.out.println("Bitset:"+list+" K:" +k);
             //for (int k = list.nextSetBit(0); k >= 0; k = list.nextSetBit(k + 1)) {
             /*if (k == Integer.MAX_VALUE) {
          break; // or (k+1) would overflow
             }*/
-            FPNode X_node = tree.mapItemNodes.get(k);
+            //FPNode X_node = tree.mapItemNodes.get(k);
+            for (FPNode X_node : tree.mapItemNodes.get(k)){
             // find the first/head node of the header list corresponding to item k
-            while (X_node != null) {
+            //while (X_node != null) {
                 if (!Check_path(list, k, X_node)) {
                     //System.out.println("s:"+sum);
                     sum = sum + X_node.counter;
                 }
-                X_node = X_node.nodeLink;
+                //X_node = X_node.nodeLink;
             }
         
         return sum;
@@ -624,7 +637,7 @@ public class AlgoCIMAncestorBitset {
         boolean result = false;
         //System.out.println("Agaiin");
         //for (int k = list.previousSetBit(list.size()); k >= indexOfItem; k = list.previousSetBit(k - 1)) {
-        for (int k = list.previousSetBit(indexOfItem - 1); k >= 0; k = list.previousSetBit(k - 1)) {
+        /*for (int k = list.previousSetBit(indexOfItem - 1); k >= 0; k = list.previousSetBit(k - 1)) {
             //c++;
             // operate on index i here
             if (!X_node.bitMap.get(k)) {
@@ -632,16 +645,16 @@ public class AlgoCIMAncestorBitset {
                 result = true;
                 break;
             }
-        }
+        }*/
         
-        /*for (int k = list.nextSetBit(0); k < indexOfItem; k = list.nextSetBit(k+1)) {
-           System.out.println("k:"+k+"->"+list.get(k));
-            if (X_node.bitMap.get(k)) {
-                System.out.println("Item "+ list.get(k) + " is parent of "+ X_node.nodeID);
+        for (int k = list.nextSetBit(indexOfItem+1); k >= 0; k = list.nextSetBit(k+1)) {
+           //System.out.println("k:"+k+"->"+list.get(k));
+            if (!X_node.bitMap.get(k)) {
+                //System.out.println("Item "+ list.get(k) + " is parent of "+ X_node.nodeID);
                 result = true;
                 break;
             }
-        }*/
+        }
         //System.out.println("Result:" + result);
         return result;
     }
